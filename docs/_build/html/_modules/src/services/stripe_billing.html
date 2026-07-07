@@ -1,0 +1,745 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.services.stripe_billing &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.services.stripe_billing</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.services.stripe_billing</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Stripe Billing — Checkout, Customer Portal, webhook sync.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">stripe</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.crud</span><span class="w"> </span><span class="kn">import</span> <span class="n">tenant</span> <span class="k">as</span> <span class="n">tenant_crud</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.tenant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tenant</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.subscription</span><span class="w"> </span><span class="kn">import</span> <span class="n">VALID_BILLING_INTERVALS</span><span class="p">,</span> <span class="n">utcnow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.services.subscription_events</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EVENT_CHECKOUT_COMPLETED</span><span class="p">,</span>
+    <span class="n">EVENT_INVOICE_PAID</span><span class="p">,</span>
+    <span class="n">EVENT_INVOICE_PAYMENT_FAILED</span><span class="p">,</span>
+    <span class="n">EVENT_SUBSCRIPTION_CREATED</span><span class="p">,</span>
+    <span class="n">EVENT_SUBSCRIPTION_DELETED</span><span class="p">,</span>
+    <span class="n">EVENT_SUBSCRIPTION_UPDATED</span><span class="p">,</span>
+    <span class="n">EVENT_SYNC_FROM_STRIPE</span><span class="p">,</span>
+    <span class="n">record_subscription_event</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">INTERVAL_TO_PRICE_SETTING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;monthly&quot;</span><span class="p">:</span> <span class="s2">&quot;STRIPE_PRICE_MONTHLY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;biannual&quot;</span><span class="p">:</span> <span class="s2">&quot;STRIPE_PRICE_BIANNUAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;annual&quot;</span><span class="p">:</span> <span class="s2">&quot;STRIPE_PRICE_ANNUAL&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">STRIPE_STATUS_TO_INTERNAL</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;active&quot;</span><span class="p">:</span> <span class="s2">&quot;active&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;trialing&quot;</span><span class="p">:</span> <span class="s2">&quot;trialing&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;past_due&quot;</span><span class="p">:</span> <span class="s2">&quot;past_due&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;canceled&quot;</span><span class="p">:</span> <span class="s2">&quot;canceled&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;unpaid&quot;</span><span class="p">:</span> <span class="s2">&quot;canceled&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;incomplete&quot;</span><span class="p">:</span> <span class="s2">&quot;canceled&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;incomplete_expired&quot;</span><span class="p">:</span> <span class="s2">&quot;canceled&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;paused&quot;</span><span class="p">:</span> <span class="s2">&quot;canceled&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="stripe_enabled">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.stripe_enabled">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stripe_enabled</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_SECRET_KEY</span> <span class="ow">and</span> <span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_SECRET_KEY</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_configure_stripe</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stripe_enabled</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Stripe is not configured.&quot;</span><span class="p">)</span>
+    <span class="n">stripe</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_SECRET_KEY</span>
+
+
+<div class="viewcode-block" id="price_id_for_interval">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.price_id_for_interval">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">price_id_for_interval</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.crud.subscription_plan</span><span class="w"> </span><span class="kn">import</span> <span class="n">stripe_price_id_for_interval</span>
+
+    <span class="k">if</span> <span class="n">interval</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_BILLING_INTERVALS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown billing interval: </span><span class="si">{</span><span class="n">interval</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">price_id</span> <span class="o">=</span> <span class="n">stripe_price_id_for_interval</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">price_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stripe price not configured for </span><span class="si">{</span><span class="n">interval</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">price_id</span></div>
+
+
+
+<div class="viewcode-block" id="interval_from_price_id">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.interval_from_price_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interval_from_price_id</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">price_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.crud.subscription_plan</span><span class="w"> </span><span class="kn">import</span> <span class="n">interval_from_stripe_price_id</span>
+
+    <span class="k">return</span> <span class="n">interval_from_stripe_price_id</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">price_id</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_frontend_base</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">APP_ENV</span> <span class="o">==</span> <span class="s2">&quot;development&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;http://localhost:3000&quot;</span>
+    <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">FRONTEND_URL</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="checkout_success_url">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.checkout_success_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">checkout_success_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">configured</span> <span class="o">=</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_SUCCESS_URL</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">configured</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">configured</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_frontend_base</span><span class="p">()</span><span class="si">}</span><span class="s2">/settings/subscription?checkout=success&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="checkout_cancel_url">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.checkout_cancel_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">checkout_cancel_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">configured</span> <span class="o">=</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_CANCEL_URL</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">configured</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">configured</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_frontend_base</span><span class="p">()</span><span class="si">}</span><span class="s2">/settings/subscription?checkout=canceled&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="portal_return_url">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.portal_return_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">portal_return_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_frontend_base</span><span class="p">()</span><span class="si">}</span><span class="s2">/settings/subscription?portal=return&quot;</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize Stripe objects / webhook payloads to plain dicts.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+    <span class="n">to_dict</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;to_dict_recursive&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;to_dict&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">to_dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">to_dict</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_event_type_and_object</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">event_type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;object&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">_as_dict</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="n">event_type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ts_to_datetime</span><span class="p">(</span><span class="n">ts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ts</span><span class="p">),</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_subscription_period_bounds</span><span class="p">(</span><span class="n">sub</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve billing period dates from Stripe subscription (incl. trial and newer API shapes).&quot;&quot;&quot;</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+    <span class="n">trial_start</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trial_start&quot;</span><span class="p">)</span>
+    <span class="n">trial_end</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trial_end&quot;</span><span class="p">)</span>
+    <span class="n">period_start</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;current_period_start&quot;</span><span class="p">)</span>
+    <span class="n">period_end</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;current_period_end&quot;</span><span class="p">)</span>
+
+    <span class="n">items</span> <span class="o">=</span> <span class="p">(</span><span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">items</span><span class="p">:</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">period_start</span> <span class="o">=</span> <span class="n">period_start</span> <span class="ow">or</span> <span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;current_period_start&quot;</span><span class="p">)</span>
+        <span class="n">period_end</span> <span class="o">=</span> <span class="n">period_end</span> <span class="ow">or</span> <span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;current_period_end&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;trialing&quot;</span><span class="p">:</span>
+        <span class="n">start_ts</span> <span class="o">=</span> <span class="n">trial_start</span> <span class="ow">or</span> <span class="n">period_start</span>
+        <span class="n">end_ts</span> <span class="o">=</span> <span class="n">trial_end</span> <span class="ow">or</span> <span class="n">period_end</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">start_ts</span> <span class="o">=</span> <span class="n">period_start</span>
+        <span class="n">end_ts</span> <span class="o">=</span> <span class="n">period_end</span>
+
+    <span class="k">return</span> <span class="n">_ts_to_datetime</span><span class="p">(</span><span class="n">start_ts</span><span class="p">),</span> <span class="n">_ts_to_datetime</span><span class="p">(</span><span class="n">end_ts</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tenant_subscription_snapshot</span><span class="p">(</span><span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+    <span class="n">period_end</span> <span class="o">=</span> <span class="n">tenant</span><span class="o">.</span><span class="n">period_end</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span> <span class="k">if</span> <span class="n">tenant</span><span class="o">.</span><span class="n">period_end</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">,</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span><span class="p">,</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span><span class="p">,</span>
+        <span class="n">period_end</span><span class="p">,</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tenant_by_stripe_customer</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">customer_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tenant</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Tenant</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span> <span class="o">==</span> <span class="n">customer_id</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tenant_by_stripe_subscription</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">subscription_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tenant</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Tenant</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span> <span class="o">==</span> <span class="n">subscription_id</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tenant_from_metadata</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tenant</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">meta</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">tenant_id</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tenant_id&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">tenant_crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">tenant_id</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="get_or_create_stripe_customer">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.get_or_create_stripe_customer">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_or_create_stripe_customer</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">_configure_stripe</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span>
+
+    <span class="n">customer</span> <span class="o">=</span> <span class="n">stripe</span><span class="o">.</span><span class="n">Customer</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="ow">or</span> <span class="n">tenant</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span> <span class="o">=</span> <span class="n">customer</span><span class="o">.</span><span class="n">id</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">customer</span><span class="o">.</span><span class="n">id</span></div>
+
+
+
+<div class="viewcode-block" id="create_checkout_session">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.create_checkout_session">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_checkout_session</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">billing_interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">admin_email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">admin_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">_configure_stripe</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">tenant</span><span class="o">.</span><span class="n">is_platform</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Platform tenant cannot subscribe.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">:</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">stripe</span><span class="o">.</span><span class="n">Subscription</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;active&quot;</span><span class="p">,</span> <span class="s2">&quot;trialing&quot;</span><span class="p">,</span> <span class="s2">&quot;past_due&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;An active Stripe subscription already exists. Use Manage billing instead.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="n">get_or_create_stripe_customer</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span> <span class="n">tenant</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">admin_email</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">admin_name</span>
+    <span class="p">)</span>
+    <span class="n">price_id</span> <span class="o">=</span> <span class="n">price_id_for_interval</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">billing_interval</span><span class="p">)</span>
+
+    <span class="n">subscription_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s2">&quot;billing_interval&quot;</span><span class="p">:</span> <span class="n">billing_interval</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Continue local trial on Stripe if still trialing without paid sub</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span> <span class="o">==</span> <span class="s2">&quot;trialing&quot;</span>
+        <span class="ow">and</span> <span class="n">tenant</span><span class="o">.</span><span class="n">period_end</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span>
+    <span class="p">):</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">tenant</span><span class="o">.</span><span class="n">period_end</span>
+        <span class="k">if</span> <span class="n">end</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">end</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">utcnow</span><span class="p">():</span>
+            <span class="n">subscription_data</span><span class="p">[</span><span class="s2">&quot;trial_end&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span><span class="o">.</span><span class="n">timestamp</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span> <span class="ow">and</span> <span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_CHECKOUT_TRIAL_DAYS</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">subscription_data</span><span class="p">[</span><span class="s2">&quot;trial_period_days&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_CHECKOUT_TRIAL_DAYS</span>
+
+    <span class="n">session</span> <span class="o">=</span> <span class="n">stripe</span><span class="o">.</span><span class="n">checkout</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">customer</span><span class="o">=</span><span class="n">customer_id</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;subscription&quot;</span><span class="p">,</span>
+        <span class="n">line_items</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="n">price_id</span><span class="p">,</span> <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
+        <span class="n">success_url</span><span class="o">=</span><span class="n">checkout_success_url</span><span class="p">(),</span>
+        <span class="n">cancel_url</span><span class="o">=</span><span class="n">checkout_cancel_url</span><span class="p">(),</span>
+        <span class="n">client_reference_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s2">&quot;billing_interval&quot;</span><span class="p">:</span> <span class="n">billing_interval</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">subscription_data</span><span class="o">=</span><span class="n">subscription_data</span><span class="p">,</span>
+        <span class="n">allow_promotion_codes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">payment_method_collection</span><span class="o">=</span><span class="s2">&quot;always&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="o">.</span><span class="n">url</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Stripe did not return a checkout URL.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">url</span></div>
+
+
+
+<div class="viewcode-block" id="create_portal_session">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.create_portal_session">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_portal_session</span><span class="p">(</span><span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">_configure_stripe</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No Stripe customer on file. Subscribe first.&quot;</span><span class="p">)</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">stripe</span><span class="o">.</span><span class="n">billing_portal</span><span class="o">.</span><span class="n">Session</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">customer</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span><span class="p">,</span>
+        <span class="n">return_url</span><span class="o">=</span><span class="n">portal_return_url</span><span class="p">(),</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="o">.</span><span class="n">url</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Stripe did not return a portal URL.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">url</span></div>
+
+
+
+<div class="viewcode-block" id="cancel_subscription_at_period_end">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.cancel_subscription_at_period_end">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cancel_subscription_at_period_end</span><span class="p">(</span><span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_configure_stripe</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">stripe</span><span class="o">.</span><span class="n">Subscription</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">,</span>
+        <span class="n">cancel_at_period_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="reactivate_stripe_subscription">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.reactivate_stripe_subscription">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reactivate_stripe_subscription</span><span class="p">(</span><span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_configure_stripe</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">stripe</span><span class="o">.</span><span class="n">Subscription</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">,</span>
+        <span class="n">cancel_at_period_end</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="apply_stripe_subscription_to_tenant">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.apply_stripe_subscription_to_tenant">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_stripe_subscription_to_tenant</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">,</span>
+    <span class="n">subscription</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tenant</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sync Stripe subscription object onto tenant row.&quot;&quot;&quot;</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">subscription</span><span class="p">)</span>
+
+    <span class="n">sub_id</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;customer&quot;</span><span class="p">)</span>
+    <span class="n">cancel_at_period_end</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cancel_at_period_end&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">items</span> <span class="o">=</span> <span class="p">(</span><span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="n">price_id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">items</span><span class="p">:</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">price</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;price&quot;</span><span class="p">))</span>
+        <span class="n">price_id</span> <span class="o">=</span> <span class="n">price</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">sub</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadata&quot;</span><span class="p">))</span>
+    <span class="c1"># Portal plan changes update the price, not subscription metadata from checkout.</span>
+    <span class="n">interval</span> <span class="o">=</span> <span class="n">interval_from_price_id</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">price_id</span><span class="p">)</span> <span class="ow">or</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;billing_interval&quot;</span><span class="p">)</span>
+
+    <span class="n">internal_status</span> <span class="o">=</span> <span class="n">STRIPE_STATUS_TO_INTERNAL</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="s2">&quot;canceled&quot;</span><span class="p">)</span>
+
+    <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span> <span class="o">=</span> <span class="n">sub_id</span>
+    <span class="k">if</span> <span class="n">customer_id</span><span class="p">:</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">customer_id</span><span class="p">)</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">plan</span> <span class="o">=</span> <span class="n">tenant</span><span class="o">.</span><span class="n">plan</span> <span class="ow">or</span> <span class="s2">&quot;dose_unlimited&quot;</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span> <span class="o">=</span> <span class="n">interval</span> <span class="ow">or</span> <span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span> <span class="o">=</span> <span class="n">internal_status</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">cancel_at_period_end</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">cancel_at_period_end</span><span class="p">)</span>
+    <span class="n">period_start</span><span class="p">,</span> <span class="n">period_end</span> <span class="o">=</span> <span class="n">_subscription_period_bounds</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">period_start</span> <span class="o">=</span> <span class="n">period_start</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">period_end</span> <span class="o">=</span> <span class="n">period_end</span>
+
+    <span class="k">if</span> <span class="n">internal_status</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;active&quot;</span><span class="p">,</span> <span class="s2">&quot;trialing&quot;</span><span class="p">,</span> <span class="s2">&quot;past_due&quot;</span><span class="p">):</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;active&quot;</span> <span class="k">if</span> <span class="n">internal_status</span> <span class="o">!=</span> <span class="s2">&quot;trialing&quot;</span> <span class="k">else</span> <span class="s2">&quot;trial&quot;</span>
+        <span class="k">if</span> <span class="n">internal_status</span> <span class="o">==</span> <span class="s2">&quot;trialing&quot;</span><span class="p">:</span>
+            <span class="n">tenant</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;trial&quot;</span>
+        <span class="k">elif</span> <span class="n">internal_status</span> <span class="o">==</span> <span class="s2">&quot;active&quot;</span><span class="p">:</span>
+            <span class="n">tenant</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;active&quot;</span>
+    <span class="k">elif</span> <span class="n">internal_status</span> <span class="o">==</span> <span class="s2">&quot;canceled&quot;</span><span class="p">:</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;suspended&quot;</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tenant</span></div>
+
+
+
+<div class="viewcode-block" id="handle_webhook_event">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.handle_webhook_event">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">handle_webhook_event</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">stripe_event_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">event_type</span><span class="p">,</span> <span class="n">data_object</span> <span class="o">=</span> <span class="n">_event_type_and_object</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stripe webhook: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">event_type</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s2">&quot;checkout.session.completed&quot;</span><span class="p">:</span>
+        <span class="n">_handle_checkout_completed</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data_object</span><span class="p">,</span> <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s2">&quot;customer.subscription.created&quot;</span><span class="p">:</span>
+        <span class="n">_handle_subscription_upsert</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">data_object</span><span class="p">,</span> <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">,</span> <span class="n">created</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s2">&quot;customer.subscription.updated&quot;</span><span class="p">:</span>
+        <span class="n">_handle_subscription_upsert</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">data_object</span><span class="p">,</span> <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">,</span> <span class="n">created</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s2">&quot;customer.subscription.deleted&quot;</span><span class="p">:</span>
+        <span class="n">_handle_subscription_deleted</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data_object</span><span class="p">,</span> <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s2">&quot;invoice.paid&quot;</span><span class="p">:</span>
+        <span class="n">_handle_invoice_paid</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data_object</span><span class="p">,</span> <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s2">&quot;invoice.payment_failed&quot;</span><span class="p">:</span>
+        <span class="n">_handle_payment_failed</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data_object</span><span class="p">,</span> <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="sync_tenant_from_stripe">
+<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.sync_tenant_from_stripe">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sync_tenant_from_stripe</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tenant</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pull latest Stripe subscription state onto tenant (post-checkout fallback).&quot;&quot;&quot;</span>
+    <span class="n">_configure_stripe</span><span class="p">()</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="n">_tenant_subscription_snapshot</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">:</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">stripe</span><span class="o">.</span><span class="n">Subscription</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">)</span>
+        <span class="n">tenant</span> <span class="o">=</span> <span class="n">apply_stripe_subscription_to_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span><span class="p">:</span>
+        <span class="n">subs</span> <span class="o">=</span> <span class="n">stripe</span><span class="o">.</span><span class="n">Subscription</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
+            <span class="n">customer</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span><span class="p">,</span>
+            <span class="n">status</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span>
+            <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">synced</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subs</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sub</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;trialing&quot;</span><span class="p">,</span> <span class="s2">&quot;active&quot;</span><span class="p">,</span> <span class="s2">&quot;past_due&quot;</span><span class="p">):</span>
+                <span class="n">tenant</span> <span class="o">=</span> <span class="n">apply_stripe_subscription_to_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
+                <span class="n">synced</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">synced</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No active Stripe subscription found for this salon.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No Stripe customer on file.&quot;</span><span class="p">)</span>
+
+    <span class="n">after</span> <span class="o">=</span> <span class="n">_tenant_subscription_snapshot</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">before</span> <span class="o">!=</span> <span class="n">after</span><span class="p">:</span>
+        <span class="n">record_subscription_event</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span>
+            <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="n">EVENT_SYNC_FROM_STRIPE</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="s2">&quot;stripe_sync&quot;</span><span class="p">,</span>
+            <span class="n">summary</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Subscription synced from Stripe (</span><span class="si">{</span><span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">,</span>
+            <span class="n">billing_interval</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+            <span class="n">subscription_status</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">tenant</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_checkout_completed</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">session</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">stripe_event_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">_tenant_from_metadata</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadata&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span> <span class="ow">and</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;client_reference_id&quot;</span><span class="p">):</span>
+        <span class="n">tenant</span> <span class="o">=</span> <span class="n">tenant_crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">session</span><span class="p">[</span><span class="s2">&quot;client_reference_id&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;checkout.session.completed: no tenant matched&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="n">customer_id</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;customer&quot;</span><span class="p">)</span>
+    <span class="n">subscription_id</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;subscription&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">customer_id</span><span class="p">:</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">customer_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">subscription_id</span><span class="p">:</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">subscription_id</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+
+    <span class="n">record_subscription_event</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="o">=</span><span class="n">EVENT_CHECKOUT_COMPLETED</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;stripe_webhook&quot;</span><span class="p">,</span>
+        <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">,</span>
+        <span class="n">summary</span><span class="o">=</span><span class="s2">&quot;Stripe Checkout completed — payment method saved.&quot;</span><span class="p">,</span>
+        <span class="n">billing_interval</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+        <span class="n">subscription_status</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span><span class="p">,</span>
+        <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;stripe_customer_id&quot;</span><span class="p">:</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span><span class="p">,</span>
+            <span class="s2">&quot;stripe_subscription_id&quot;</span><span class="p">:</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_subscription_upsert</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">subscription</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">stripe_event_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">created</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">subscription</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">subscription</span><span class="p">)</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">_tenant_by_stripe_subscription</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">subscription</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="n">tenant</span> <span class="o">=</span> <span class="n">_tenant_from_metadata</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">subscription</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadata&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="n">customer_id</span> <span class="o">=</span> <span class="n">subscription</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;customer&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">customer_id</span><span class="p">:</span>
+            <span class="n">tenant</span> <span class="o">=</span> <span class="n">_tenant_by_stripe_customer</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">customer_id</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No tenant for subscription </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">subscription</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">))</span>
+        <span class="k">return</span>
+    <span class="n">apply_stripe_subscription_to_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant</span><span class="p">,</span> <span class="n">subscription</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+
+    <span class="n">status</span> <span class="o">=</span> <span class="n">subscription</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+    <span class="n">interval</span> <span class="o">=</span> <span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span>
+    <span class="n">event_type</span> <span class="o">=</span> <span class="n">EVENT_SUBSCRIPTION_CREATED</span> <span class="k">if</span> <span class="n">created</span> <span class="k">else</span> <span class="n">EVENT_SUBSCRIPTION_UPDATED</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Stripe subscription </span><span class="si">{</span><span class="s1">&#39;created&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">created</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;updated&#39;</span><span class="si">}</span><span class="s2"> — status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">.&quot;</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">tenant</span><span class="o">.</span><span class="n">cancel_at_period_end</span><span class="p">:</span>
+        <span class="n">summary</span> <span class="o">+=</span> <span class="s2">&quot; Cancels at period end.&quot;</span>
+
+    <span class="n">record_subscription_event</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="o">=</span><span class="n">event_type</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;stripe_webhook&quot;</span><span class="p">,</span>
+        <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">,</span>
+        <span class="n">summary</span><span class="o">=</span><span class="n">summary</span><span class="p">,</span>
+        <span class="n">billing_interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span>
+        <span class="n">subscription_status</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span><span class="p">,</span>
+        <span class="n">details</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;stripe_subscription_id&quot;</span><span class="p">:</span> <span class="n">subscription</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">),</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">},</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_subscription_deleted</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">subscription</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">stripe_event_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">subscription</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">subscription</span><span class="p">)</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">_tenant_by_stripe_subscription</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">subscription</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span> <span class="o">=</span> <span class="s2">&quot;canceled&quot;</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;suspended&quot;</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">cancel_at_period_end</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="n">record_subscription_event</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="o">=</span><span class="n">EVENT_SUBSCRIPTION_DELETED</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;stripe_webhook&quot;</span><span class="p">,</span>
+        <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">,</span>
+        <span class="n">summary</span><span class="o">=</span><span class="s2">&quot;Stripe subscription ended — salon access suspended.&quot;</span><span class="p">,</span>
+        <span class="n">subscription_status</span><span class="o">=</span><span class="s2">&quot;canceled&quot;</span><span class="p">,</span>
+        <span class="n">details</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;stripe_subscription_id&quot;</span><span class="p">:</span> <span class="n">subscription</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)},</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_invoice_paid</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">invoice</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">stripe_event_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">invoice</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+    <span class="n">subscription_id</span> <span class="o">=</span> <span class="n">invoice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;subscription&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subscription_id</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">_tenant_by_stripe_subscription</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">subscription_id</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">amount</span> <span class="o">=</span> <span class="n">invoice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;amount_paid&quot;</span><span class="p">)</span>
+    <span class="n">currency</span> <span class="o">=</span> <span class="n">invoice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;currency&quot;</span><span class="p">)</span>
+    <span class="n">record_subscription_event</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="o">=</span><span class="n">EVENT_INVOICE_PAID</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;stripe_webhook&quot;</span><span class="p">,</span>
+        <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">,</span>
+        <span class="n">summary</span><span class="o">=</span><span class="s2">&quot;Invoice paid through Stripe.&quot;</span><span class="p">,</span>
+        <span class="n">amount_cents</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">if</span> <span class="n">amount</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">currency</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">currency</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">if</span> <span class="n">currency</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">billing_interval</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+        <span class="n">subscription_status</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span><span class="p">,</span>
+        <span class="n">details</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;invoice_id&quot;</span><span class="p">:</span> <span class="n">invoice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)},</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_payment_failed</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">invoice</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">stripe_event_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">invoice</span> <span class="o">=</span> <span class="n">_as_dict</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+    <span class="n">subscription_id</span> <span class="o">=</span> <span class="n">invoice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;subscription&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subscription_id</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">_tenant_by_stripe_subscription</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">subscription_id</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span> <span class="o">=</span> <span class="s2">&quot;past_due&quot;</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="n">record_subscription_event</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="o">=</span><span class="n">EVENT_INVOICE_PAYMENT_FAILED</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;stripe_webhook&quot;</span><span class="p">,</span>
+        <span class="n">stripe_event_id</span><span class="o">=</span><span class="n">stripe_event_id</span><span class="p">,</span>
+        <span class="n">summary</span><span class="o">=</span><span class="s2">&quot;Stripe invoice payment failed — subscription marked past due.&quot;</span><span class="p">,</span>
+        <span class="n">subscription_status</span><span class="o">=</span><span class="s2">&quot;past_due&quot;</span><span class="p">,</span>
+        <span class="n">details</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;invoice_id&quot;</span><span class="p">:</span> <span class="n">invoice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)},</span>
+    <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

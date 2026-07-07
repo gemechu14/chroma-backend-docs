@@ -1,0 +1,171 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a19e95da" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Operations" href="operations.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Security</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#auth-model">Auth model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#token-and-session-handling">Token and session handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#secrets-management">Secrets management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rate-limiting-and-abuse-controls">Rate limiting and abuse controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#security-best-practices">Security best practices</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Security</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/security.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="security">
+<h1>Security<a class="headerlink" href="#security" title="Link to this heading"></a></h1>
+<section id="auth-model">
+<h2>Auth model<a class="headerlink" href="#auth-model" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>JWT-based authentication using access and refresh tokens.</p></li>
+<li><p>Google OAuth supported as external identity source.</p></li>
+<li><p>Tenant-aware authorization enforced in router/crud layers.</p></li>
+</ul>
+</section>
+<section id="token-and-session-handling">
+<h2>Token and session handling<a class="headerlink" href="#token-and-session-handling" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Use short-lived access tokens and rotate refresh tokens on use.</p></li>
+<li><p>Transmit tokens only over HTTPS in production.</p></li>
+<li><p>Validate issuer/audience claims if cross-service token usage is introduced.</p></li>
+<li><p>Revoke refresh tokens on password reset or account disable events.</p></li>
+</ul>
+</section>
+<section id="secrets-management">
+<h2>Secrets management<a class="headerlink" href="#secrets-management" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Store <code class="docutils literal notranslate"><span class="pre">SECRET_KEY</span></code>, OAuth client secrets, Stripe keys, and SMTP credentials in secret managers or encrypted environment stores.</p></li>
+<li><p>Do not commit <code class="docutils literal notranslate"><span class="pre">.env</span></code> files or plaintext credentials.</p></li>
+<li><p>Rotate high-impact secrets on schedule and after incidents.</p></li>
+</ul>
+</section>
+<section id="rate-limiting-and-abuse-controls">
+<h2>Rate limiting and abuse controls<a class="headerlink" href="#rate-limiting-and-abuse-controls" title="Link to this heading"></a></h2>
+<p>Assumptions:</p>
+<ul class="simple">
+<li><p>No explicit application-layer limiter is currently configured in this codebase.</p></li>
+</ul>
+<p>Recommendations:</p>
+<ul class="simple">
+<li><p>Apply gateway-level limits for <code class="docutils literal notranslate"><span class="pre">/api/v1/users/login</span></code>, password reset endpoints, and <code class="docutils literal notranslate"><span class="pre">/api/v1/places/autocomplete</span></code>.</p></li>
+<li><p>Apply webhook signature validation and request-size limits on <code class="docutils literal notranslate"><span class="pre">/api/v1/stripe/webhook</span></code>.</p></li>
+<li><p>Add brute-force protection and temporary lockouts for repeated failed auth attempts.</p></li>
+</ul>
+</section>
+<section id="security-best-practices">
+<h2>Security best practices<a class="headerlink" href="#security-best-practices" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Narrow CORS allowlist in production (do not use <code class="docutils literal notranslate"><span class="pre">*</span></code>).</p></li>
+<li><p>Enforce least-privilege role checks for all mutation routes.</p></li>
+<li><p>Log security-relevant events (login failures, privilege changes, billing changes).</p></li>
+<li><p>Keep dependencies patched (FastAPI, SQLAlchemy, auth libraries, Stripe SDK).</p></li>
+<li><p>Run periodic secret scanning and dependency vulnerability checks in CI.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="operations.html" class="btn btn-neutral float-right" title="Operations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

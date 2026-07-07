@@ -1,0 +1,331 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.utils.google_oauth_flow &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.utils.google_oauth_flow</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.utils.google_oauth_flow</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Google OAuth 2.0 authorization code flow helpers (Authlib + OpenID userinfo).&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">authlib.integrations.requests_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAuth2Session</span><span class="p">,</span> <span class="n">OAuthError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">authlib.oauth2.rfc6749.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAuth2Error</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">status</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">func</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.user</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+
+<span class="n">GOOGLE_AUTH_URL</span> <span class="o">=</span> <span class="s2">&quot;https://accounts.google.com/o/oauth2/v2/auth&quot;</span>
+<span class="n">GOOGLE_TOKEN_URL</span> <span class="o">=</span> <span class="s2">&quot;https://oauth2.googleapis.com/token&quot;</span>
+<span class="n">GOOGLE_USERINFO_URL</span> <span class="o">=</span> <span class="s2">&quot;https://openidconnect.googleapis.com/v1/userinfo&quot;</span>
+
+
+<div class="viewcode-block" id="get_google_redirect_uri">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.get_google_redirect_uri">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_google_redirect_uri</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Single source of truth for Google OAuth redirect_uri.</span>
+<span class="sd">    Must be identical in: authorize URL (/o/oauth2/v2/auth), token POST (/token),</span>
+<span class="sd">    and Google Cloud Console → Authorized redirect URIs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">GOOGLE_REDIRECT_URI</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_assert_authorize_url_redirect_matches</span><span class="p">(</span><span class="n">auth_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure the built authorize URL embeds the same redirect_uri we use in fetch_token.&quot;&quot;&quot;</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="n">get_google_redirect_uri</span><span class="p">()</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">auth_url</span><span class="p">)</span>
+    <span class="n">qs</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">parse_qs</span><span class="p">(</span><span class="n">parsed</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="p">(</span><span class="n">qs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;redirect_uri&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[</span><span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Google authorize URL is missing redirect_uri&quot;</span><span class="p">)</span>
+    <span class="n">got</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">got</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;authorize redirect_uri mismatch: URL has </span><span class="si">{</span><span class="n">got</span><span class="si">!r}</span><span class="s2">, expected </span><span class="si">{</span><span class="n">expected</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="normalize_email">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.normalize_email">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_email</span><span class="p">(</span><span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">email</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="oauth_session">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.oauth_session">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">oauth_session</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">OAuth2Session</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">OAuth2Session</span><span class="p">(</span>
+        <span class="n">client_id</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">GOOGLE_CLIENT_ID</span><span class="p">,</span>
+        <span class="n">client_secret</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">GOOGLE_CLIENT_SECRET</span><span class="p">,</span>
+        <span class="n">redirect_uri</span><span class="o">=</span><span class="n">get_google_redirect_uri</span><span class="p">(),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_google_authorization_url">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.create_google_authorization_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_google_authorization_url</span><span class="p">(</span><span class="n">state_jwt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build Google authorize URL; state is our signed JWT for CSRF.&quot;&quot;&quot;</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">oauth_session</span><span class="p">()</span>
+    <span class="n">extra</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;scope&quot;</span><span class="p">:</span> <span class="s2">&quot;openid email profile&quot;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE</span><span class="p">:</span>
+        <span class="n">extra</span><span class="p">[</span><span class="s2">&quot;access_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;offline&quot;</span>
+    <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">GOOGLE_OAUTH_PROMPT_CONSENT</span><span class="p">:</span>
+        <span class="n">extra</span><span class="p">[</span><span class="s2">&quot;prompt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;consent&quot;</span>
+    <span class="c1"># Explicit redirect_uri so it matches fetch_token() and Google Cloud Console exactly.</span>
+    <span class="n">url</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">create_authorization_url</span><span class="p">(</span>
+        <span class="n">GOOGLE_AUTH_URL</span><span class="p">,</span>
+        <span class="n">state</span><span class="o">=</span><span class="n">state_jwt</span><span class="p">,</span>
+        <span class="n">redirect_uri</span><span class="o">=</span><span class="n">get_google_redirect_uri</span><span class="p">(),</span>
+        <span class="o">**</span><span class="n">extra</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_assert_authorize_url_redirect_matches</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">url</span></div>
+
+
+
+<div class="viewcode-block" id="exchange_code_for_token">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.exchange_code_for_token">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">exchange_code_for_token</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exchange authorization code for tokens.</span>
+<span class="sd">    Authlib uses HTTP Basic auth for client credentials by default (not body + Basic).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">oauth_session</span><span class="p">()</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">code</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_token</span><span class="p">(</span>
+        <span class="n">GOOGLE_TOKEN_URL</span><span class="p">,</span>
+        <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span>
+        <span class="n">redirect_uri</span><span class="o">=</span><span class="n">get_google_redirect_uri</span><span class="p">(),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="fetch_openid_userinfo">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.fetch_openid_userinfo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_openid_userinfo</span><span class="p">(</span><span class="n">access_token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">GOOGLE_USERINFO_URL</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="derive_display_name">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.derive_display_name">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">derive_display_name</span><span class="p">(</span><span class="n">userinfo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">userinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">userinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;given_name&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">name</span><span class="p">[:</span><span class="mi">150</span><span class="p">]</span>
+    <span class="n">local</span> <span class="o">=</span> <span class="n">email</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">local</span><span class="p">[:</span><span class="mi">150</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="resolve_google_user">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.resolve_google_user">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_google_user</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">google_sub</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">email_raw</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">full_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resolve an existing user by Google subject or email (link first-time Google to a local row).</span>
+
+<span class="sd">    Does not create new users; unknown Google identities get a clear error.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">email_norm</span> <span class="o">=</span> <span class="n">normalize_email</span><span class="p">(</span><span class="n">email_raw</span><span class="p">)</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">google_id</span> <span class="o">==</span> <span class="n">google_sub</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Account is inactive&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">last_login_at</span> <span class="o">=</span> <span class="n">now</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">user</span>
+
+    <span class="n">matches</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">email</span><span class="p">)</span> <span class="o">==</span> <span class="n">email_norm</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">google_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">u</span><span class="o">.</span><span class="n">google_id</span> <span class="o">=</span> <span class="n">google_sub</span>
+            <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">auth_provider</span> <span class="o">==</span> <span class="s2">&quot;local&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">u</span><span class="o">.</span><span class="n">password_hash</span><span class="p">:</span>
+                <span class="n">u</span><span class="o">.</span><span class="n">auth_provider</span> <span class="o">=</span> <span class="s2">&quot;google&quot;</span>
+            <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">email_verified_at</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">u</span><span class="o">.</span><span class="n">email_verified_at</span> <span class="o">=</span> <span class="n">now</span>
+            <span class="n">u</span><span class="o">.</span><span class="n">last_login_at</span> <span class="o">=</span> <span class="n">now</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">u</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                    <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+                    <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Account is inactive&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">u</span>
+
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">google_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;This email is already linked to a different Google account&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+        <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+        <span class="n">detail</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;No account exists for this Google sign-in. &quot;</span>
+            <span class="s2">&quot;You must be invited or registered before you can sign in.&quot;</span>
+        <span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="map_oauth2_error">
+<a class="viewcode-back" href="../../../modules.html#src.utils.google_oauth_flow.map_oauth2_error">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_oauth2_error</span><span class="p">(</span><span class="n">exc</span><span class="p">:</span> <span class="n">OAuth2Error</span> <span class="o">|</span> <span class="n">OAuthError</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return (user_message, log_detail). Covers RFC6749 OAuth2Error and Authlib OAuth2Session OAuthError.&quot;&quot;&quot;</span>
+    <span class="n">err</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+    <span class="n">combined</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">desc</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">==</span> <span class="s2">&quot;invalid_grant&quot;</span> <span class="ow">or</span> <span class="s2">&quot;invalid_grant&quot;</span> <span class="ow">in</span> <span class="n">combined</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">&quot;Authorization code is invalid, expired, or already used. &quot;</span>
+            <span class="s2">&quot;Google allows one exchange per code—if the callback ran twice &quot;</span>
+            <span class="s2">&quot;(e.g. React Strict Mode) the second request fails; start sign-in again &quot;</span>
+            <span class="s2">&quot;and ensure the callback only exchanges the code once.&quot;</span><span class="p">,</span>
+            <span class="n">desc</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;redirect_uri_mismatch&quot;</span> <span class="ow">in</span> <span class="n">combined</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">&quot;redirect_uri_mismatch: the URI used when exchanging the code must be identical &quot;</span>
+            <span class="s2">&quot;to the one in the authorize step and in Google Cloud Console (scheme, host, port, path, no trailing slash). &quot;</span>
+            <span class="s2">&quot;Use GET /auth/google/start and open auth_url; do not hand-build the Google URL unless redirect_uri matches &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;GOOGLE_REDIRECT_URI exactly (server currently uses </span><span class="si">{</span><span class="n">get_google_redirect_uri</span><span class="p">()</span><span class="si">!r}</span><span class="s2">).&quot;</span><span class="p">,</span>
+            <span class="n">desc</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;Google sign-in failed. Please try again.&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+Configuration
+=============
+
+Configuration model
+-------------------
+
+Runtime settings are loaded from ``.env`` via Pydantic Settings in ``src/config.py``.
+
+Core settings
+-------------
+
+- ``APP_NAME``, ``APP_ENV``, ``DEBUG``
+- ``DATABASE_URL``
+- ``SECRET_KEY``, ``ALGORITHM``
+- ``ACCESS_TOKEN_EXPIRE_MINUTES``, ``REFRESH_TOKEN_EXPIRE_DAYS``
+- ``PLATFORM_BOOTSTRAP_SECRET``
+
+Integration settings
+--------------------
+
+- SMTP: ``SMTP_SERVER``, ``SMTP_PORT``, ``SMTP_USER``, ``SMTP_PASSWORD``, ``MAIL_FROM``
+- Google OAuth: ``GOOGLE_CLIENT_ID``, ``GOOGLE_CLIENT_SECRET``, ``GOOGLE_REDIRECT_URI``
+- Places: ``PLACES_PROVIDER``, ``PHOTON_API_BASE``, ``GOOGLE_PLACES_API_KEY``
+- Stripe: ``STRIPE_SECRET_KEY``, ``STRIPE_WEBHOOK_SECRET``, ``STRIPE_PRICE_MONTHLY``, ``STRIPE_PRICE_BIANNUAL``, ``STRIPE_PRICE_ANNUAL``
+
+Environment profiles
+--------------------
+
+Development:
+
+- ``APP_ENV=development``
+- ``DEBUG=true``
+- SQLite or local Postgres
+
+Production:
+
+- ``APP_ENV=production``
+- ``DEBUG=false``
+- Managed PostgreSQL and externally injected secrets
+
+Configuration validation
+------------------------
+
+- Ensure ``SECRET_KEY`` is rotated and not default.
+- Ensure OAuth and Stripe URLs/keys match environment.
+- Keep all secret values out of source control.

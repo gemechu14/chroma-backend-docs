@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.routers.inventory &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.routers.inventory</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.routers.inventory</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">APIRouter</span><span class="p">,</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">Query</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_db</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.schemas.inventory</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">InventoryItemCreate</span><span class="p">,</span>
+    <span class="n">InventoryItemRead</span><span class="p">,</span>
+    <span class="n">InventoryItemUpdate</span><span class="p">,</span>
+    <span class="n">InventoryTxnCreate</span><span class="p">,</span>
+    <span class="n">InventoryTxnRead</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.crud</span><span class="w"> </span><span class="kn">import</span> <span class="n">inventory</span> <span class="k">as</span> <span class="n">crud</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.deps</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_current_user</span><span class="p">,</span>
+    <span class="n">require_salon_staff_admin_or_manager</span><span class="p">,</span>
+    <span class="n">resolve_location_id</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.pagination</span><span class="w"> </span><span class="kn">import</span> <span class="n">PaginatedResponse</span><span class="p">,</span> <span class="n">calculate_skip</span><span class="p">,</span> <span class="n">calculate_total_pages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.user</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/inventory&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Inventory&quot;</span><span class="p">])</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Inventory Items</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="list_inventory">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.list_inventory">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="n">InventoryItemRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_inventory</span><span class="p">(</span>
+    <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">resolve_location_id</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">return</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_inventory_by_location</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">,</span> <span class="n">location_id</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="low_stock_alerts">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.low_stock_alerts">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/low-stock&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="n">InventoryItemRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">low_stock_alerts</span><span class="p">(</span>
+    <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">resolve_location_id</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">return</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_low_stock_items</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">,</span> <span class="n">location_id</span><span class="o">=</span><span class="n">location_id</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="reorder_list">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.reorder_list">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/reorder-list&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="n">InventoryItemRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reorder_list</span><span class="p">(</span>
+    <span class="n">ordered</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;False = needs ordering; True = marked ordered but still low stock&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">resolve_location_id</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">return</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_reorder_list_items</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">,</span> <span class="n">location_id</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="n">ordered</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_inventory_item">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.create_inventory_item">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">&quot;/items&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_inventory_item</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">InventoryItemCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span>
+    <span class="n">existing</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_inventory_item_by_location_product</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">location_id</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">tenant_product_id</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Inventory item already exists for this location and product&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">crud</span><span class="o">.</span><span class="n">create_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_inventory_item">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.get_inventory_item">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_inventory_item</span><span class="p">(</span>
+    <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Inventory item not found&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">item</span></div>
+
+
+
+<div class="viewcode-block" id="update_inventory_item">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.update_inventory_item">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_inventory_item</span><span class="p">(</span>
+    <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">InventoryItemUpdate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Inventory item not found&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">crud</span><span class="o">.</span><span class="n">update_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mark_item_ordered">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.mark_item_ordered">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">/mark-ordered&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mark_item_ordered</span><span class="p">(</span>
+    <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Inventory item not found&quot;</span>
+        <span class="p">)</span>
+    <span class="n">updated</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">mark_inventory_item_ordered</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">updated</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">updated</span></div>
+
+
+
+<div class="viewcode-block" id="unmark_item_ordered">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.unmark_item_ordered">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">/mark-ordered&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unmark_item_ordered</span><span class="p">(</span>
+    <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Inventory item not found&quot;</span>
+        <span class="p">)</span>
+    <span class="n">updated</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">clear_inventory_item_ordered</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">updated</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">updated</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Inventory Transactions</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="list_transactions">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.list_transactions">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/transactions&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">InventoryTxnRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_transactions</span><span class="p">(</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_txns_by_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">count_txns_by_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="list_item_transactions">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.list_item_transactions">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/transactions/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">InventoryTxnRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_item_transactions</span><span class="p">(</span>
+    <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Inventory item not found&quot;</span>
+        <span class="p">)</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_txns_by_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">count_txns_by_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_transaction">
+<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.create_transaction">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">&quot;/transactions&quot;</span><span class="p">,</span>
+    <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryTxnRead</span><span class="p">,</span>
+    <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_transaction</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">InventoryTxnCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_inventory_item</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">inventory_item_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Inventory item not found&quot;</span>
+        <span class="p">)</span>
+    <span class="n">new_on_hand</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">on_hand_qty</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">qty_delta</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">new_on_hand</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">on_hand</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">on_hand_qty</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">on_hand_display</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">on_hand</span><span class="p">))</span> <span class="k">if</span> <span class="n">on_hand</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">on_hand</span><span class="p">)</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">on_hand</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot subtract more than </span><span class="si">{</span><span class="n">on_hand_display</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(current on hand).&quot;</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">crud</span><span class="o">.</span><span class="n">create_inventory_txn</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

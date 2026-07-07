@@ -1,0 +1,443 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.routers.places &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.routers.places</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.routers.places</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Address autocomplete — Photon (OSM, no API key by default) or optional Google Places.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">APIRouter</span><span class="p">,</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">Query</span><span class="p">,</span> <span class="n">status</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/places&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Places&quot;</span><span class="p">])</span>
+
+<span class="n">GOOGLE_AUTOCOMPLETE_URL</span> <span class="o">=</span> <span class="s2">&quot;https://maps.googleapis.com/maps/api/place/autocomplete/json&quot;</span>
+
+<span class="c1"># Photon `bbox=minLon,minLat,maxLon,maxLat` biases search to a country (avoids empty results</span>
+<span class="c1"># for short queries when paired with ISO country + strict filtering).</span>
+<span class="n">_COUNTRY_BBOX</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;US&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">125.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">66.0</span><span class="p">,</span> <span class="mf">49.5</span><span class="p">),</span>
+    <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">141.0</span><span class="p">,</span> <span class="mf">41.7</span><span class="p">,</span> <span class="o">-</span><span class="mf">52.6</span><span class="p">,</span> <span class="mf">83.1</span><span class="p">),</span>
+    <span class="s2">&quot;MX&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">118.4</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">86.7</span><span class="p">,</span> <span class="mf">32.8</span><span class="p">),</span>
+    <span class="s2">&quot;GB&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">8.65</span><span class="p">,</span> <span class="mf">49.5</span><span class="p">,</span> <span class="mf">1.76</span><span class="p">,</span> <span class="mf">60.86</span><span class="p">),</span>
+    <span class="s2">&quot;IE&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">10.48</span><span class="p">,</span> <span class="mf">51.45</span><span class="p">,</span> <span class="o">-</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">55.38</span><span class="p">),</span>
+    <span class="s2">&quot;FR&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">5.5</span><span class="p">,</span> <span class="mf">41.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">51.5</span><span class="p">),</span>
+    <span class="s2">&quot;DE&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">5.8</span><span class="p">,</span> <span class="mf">47.2</span><span class="p">,</span> <span class="mf">15.1</span><span class="p">,</span> <span class="mf">55.1</span><span class="p">),</span>
+    <span class="s2">&quot;IT&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">6.6</span><span class="p">,</span> <span class="mf">36.6</span><span class="p">,</span> <span class="mf">18.5</span><span class="p">,</span> <span class="mf">47.1</span><span class="p">),</span>
+    <span class="s2">&quot;ES&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">9.4</span><span class="p">,</span> <span class="mf">35.2</span><span class="p">,</span> <span class="mf">4.6</span><span class="p">,</span> <span class="mf">44.0</span><span class="p">),</span>
+    <span class="s2">&quot;NL&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.3</span><span class="p">,</span> <span class="mf">50.7</span><span class="p">,</span> <span class="mf">7.2</span><span class="p">,</span> <span class="mf">53.7</span><span class="p">),</span>
+    <span class="s2">&quot;BE&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">49.5</span><span class="p">,</span> <span class="mf">6.4</span><span class="p">,</span> <span class="mf">51.6</span><span class="p">),</span>
+    <span class="s2">&quot;CH&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">5.9</span><span class="p">,</span> <span class="mf">45.8</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">,</span> <span class="mf">47.8</span><span class="p">),</span>
+    <span class="s2">&quot;AT&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9.5</span><span class="p">,</span> <span class="mf">46.4</span><span class="p">,</span> <span class="mf">17.2</span><span class="p">,</span> <span class="mf">49.0</span><span class="p">),</span>
+    <span class="s2">&quot;PL&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">14.1</span><span class="p">,</span> <span class="mf">49.0</span><span class="p">,</span> <span class="mf">24.2</span><span class="p">,</span> <span class="mf">54.9</span><span class="p">),</span>
+    <span class="s2">&quot;SE&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">11.0</span><span class="p">,</span> <span class="mf">55.3</span><span class="p">,</span> <span class="mf">24.2</span><span class="p">,</span> <span class="mf">69.1</span><span class="p">),</span>
+    <span class="s2">&quot;NO&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">57.9</span><span class="p">,</span> <span class="mf">31.3</span><span class="p">,</span> <span class="mf">71.3</span><span class="p">),</span>
+    <span class="s2">&quot;AU&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">112.9</span><span class="p">,</span> <span class="o">-</span><span class="mf">43.9</span><span class="p">,</span> <span class="mf">153.7</span><span class="p">,</span> <span class="o">-</span><span class="mf">10.7</span><span class="p">),</span>
+    <span class="s2">&quot;NZ&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">165.9</span><span class="p">,</span> <span class="o">-</span><span class="mf">47.4</span><span class="p">,</span> <span class="mf">178.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">34.3</span><span class="p">),</span>
+    <span class="s2">&quot;IN&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">68.1</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">97.4</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">),</span>
+    <span class="s2">&quot;BR&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">73.99</span><span class="p">,</span> <span class="o">-</span><span class="mf">33.75</span><span class="p">,</span> <span class="o">-</span><span class="mf">34.73</span><span class="p">,</span> <span class="mf">5.27</span><span class="p">),</span>
+    <span class="s2">&quot;JP&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">129.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">,</span> <span class="mf">146.0</span><span class="p">,</span> <span class="mf">45.6</span><span class="p">),</span>
+    <span class="s2">&quot;KR&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">124.5</span><span class="p">,</span> <span class="mf">33.0</span><span class="p">,</span> <span class="mf">131.9</span><span class="p">,</span> <span class="mf">38.7</span><span class="p">),</span>
+    <span class="s2">&quot;AE&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">51.0</span><span class="p">,</span> <span class="mf">22.6</span><span class="p">,</span> <span class="mf">56.6</span><span class="p">,</span> <span class="mf">26.1</span><span class="p">),</span>
+    <span class="s2">&quot;SA&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">34.5</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">,</span> <span class="mf">56.0</span><span class="p">,</span> <span class="mf">32.2</span><span class="p">),</span>
+    <span class="s2">&quot;EG&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">24.7</span><span class="p">,</span> <span class="mf">21.7</span><span class="p">,</span> <span class="mf">36.9</span><span class="p">,</span> <span class="mf">31.7</span><span class="p">),</span>
+    <span class="s2">&quot;ZA&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">16.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">35.0</span><span class="p">,</span> <span class="mf">33.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">22.0</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="PlacePrediction">
+<a class="viewcode-back" href="../../../modules.html#src.routers.places.PlacePrediction">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlacePrediction</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">place_id</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+
+<div class="viewcode-block" id="PlaceAutocompleteResponse">
+<a class="viewcode-back" href="../../../modules.html#src.routers.places.PlaceAutocompleteResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlaceAutocompleteResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">predictions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PlacePrediction</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_photon_props_to_description</span><span class="p">(</span><span class="n">props</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">housenumber</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;housenumber&quot;</span><span class="p">)</span>
+    <span class="n">street</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;street&quot;</span><span class="p">)</span>
+    <span class="n">parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">line1_parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">housenumber</span><span class="p">:</span>
+        <span class="n">line1_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">housenumber</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">street</span><span class="p">:</span>
+        <span class="n">line1_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">street</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">line1_parts</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line1_parts</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">):</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]))</span>
+
+    <span class="n">locality</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;city&quot;</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;town&quot;</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;village&quot;</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;locality&quot;</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;district&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">locality</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">locality</span><span class="p">))</span>
+
+    <span class="n">region</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;county&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">region</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">region</span><span class="p">))</span>
+
+    <span class="n">postcode</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;postcode&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">postcode</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">postcode</span><span class="p">))</span>
+
+    <span class="n">country</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;country&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">country</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">country</span><span class="p">))</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span> <span class="k">if</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span> <span class="k">if</span> <span class="n">out</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_leading_digits_in_query</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;First run of digits when the user starts the query with a number (e.g. &#39;123 Main&#39;).&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s*(\d+)&quot;</span><span class="p">,</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">m</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_house_number_matches_query_digits</span><span class="p">(</span><span class="n">housenumber</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">query_digits</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prefix-style match for autocomplete (query &#39;12&#39; matches hn &#39;123&#39;; &#39;123&#39; does not match &#39;125&#39;).&quot;&quot;&quot;</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">housenumber</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\d+)&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">query_digits</span><span class="p">)</span> <span class="ow">or</span> <span class="n">query_digits</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_photon_is_strict_street_address</span><span class="p">(</span>
+    <span class="n">props</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Keep only OSM objects that look like a postal line: housenumber + street name.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">strict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="n">hn</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;housenumber&quot;</span><span class="p">)</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;street&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hn</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">hn</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">st</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Boundaries / regions sometimes carry noisy tags; skip.</span>
+    <span class="k">if</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;osm_key&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;boundary&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">_leading_digits_in_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_house_number_matches_query_digits</span><span class="p">(</span><span class="n">hn</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_photon_place_id</span><span class="p">(</span><span class="n">props</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">oid</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;osm_id&quot;</span><span class="p">)</span>
+    <span class="n">otype</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;osm_type&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">oid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">otype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;osm:</span><span class="si">{</span><span class="n">otype</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">oid</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;extent&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;geom:</span><span class="si">{</span><span class="n">ext</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">ext</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;photon:unknown&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_autocomplete_photon</span><span class="p">(</span>
+    <span class="n">q</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">strict_address</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlaceAutocompleteResponse</span><span class="p">:</span>
+    <span class="n">cc_upper</span> <span class="o">=</span> <span class="n">country</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">if</span> <span class="n">country</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">bbox</span> <span class="o">=</span> <span class="n">_COUNTRY_BBOX</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cc_upper</span><span class="p">)</span> <span class="k">if</span> <span class="n">cc_upper</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="c1"># Ask Photon for extra rows when we filter so we can still fill `limit`.</span>
+    <span class="n">mult</span> <span class="o">=</span> <span class="mi">8</span> <span class="k">if</span> <span class="n">strict_address</span> <span class="k">else</span> <span class="mi">5</span>
+    <span class="n">photon_limit</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">min</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">limit</span> <span class="o">*</span> <span class="n">mult</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cc_upper</span> <span class="ow">or</span> <span class="n">strict_address</span><span class="p">)</span>
+        <span class="k">else</span> <span class="nb">min</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="n">limit</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="n">photon_limit</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">bbox</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_NAME</span><span class="si">}</span><span class="s2">/1.0 (address-autocomplete; https://photon.komoot.io)&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">PHOTON_API_BASE</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">httpx</span><span class="o">.</span><span class="n">RequestError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_502_BAD_GATEWAY</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Photon request failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">!s}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_502_BAD_GATEWAY</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Photon HTTP </span><span class="si">{</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;features&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">PlaceAutocompleteResponse</span><span class="p">(</span><span class="n">predictions</span><span class="o">=</span><span class="p">[])</span>
+
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PlacePrediction</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feat</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;properties&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">cc_upper</span><span class="p">:</span>
+            <span class="n">raw_cc</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;countrycode&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_cc</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">raw_cc</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">!=</span> <span class="n">cc_upper</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_photon_is_strict_street_address</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict_address</span><span class="p">):</span>
+            <span class="k">continue</span>
+
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">_photon_props_to_description</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">desc</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">PlacePrediction</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">place_id</span><span class="o">=</span><span class="n">_photon_place_id</span><span class="p">(</span><span class="n">props</span><span class="p">)),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">PlaceAutocompleteResponse</span><span class="p">(</span><span class="n">predictions</span><span class="o">=</span><span class="n">out</span><span class="p">[:</span><span class="n">limit</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_autocomplete_google</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlaceAutocompleteResponse</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">GOOGLE_PLACES_API_KEY</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_503_SERVICE_UNAVAILABLE</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Google Places selected but GOOGLE_PLACES_API_KEY is not set.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+        <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">GOOGLE_PLACES_API_KEY</span><span class="p">,</span>
+        <span class="s2">&quot;types&quot;</span><span class="p">:</span> <span class="s2">&quot;address&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">country</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;components&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;country:</span><span class="si">{</span><span class="n">country</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">GOOGLE_AUTOCOMPLETE_URL</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">httpx</span><span class="o">.</span><span class="n">RequestError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_502_BAD_GATEWAY</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Places request failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">!s}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_502_BAD_GATEWAY</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Places HTTP </span><span class="si">{</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="n">api_status</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">api_status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;ZERO_RESULTS&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_502_BAD_GATEWAY</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error_message&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;Places status: </span><span class="si">{</span><span class="n">api_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;predictions&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PlacePrediction</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;place_id&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlacePrediction</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">desc</span><span class="p">,</span> <span class="n">place_id</span><span class="o">=</span><span class="n">pid</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">PlaceAutocompleteResponse</span><span class="p">(</span><span class="n">predictions</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="address_autocomplete">
+<a class="viewcode-back" href="../../../modules.html#src.routers.places.address_autocomplete">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/autocomplete&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PlaceAutocompleteResponse</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">address_autocomplete</span><span class="p">(</span>
+    <span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">max_length</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Partial address or place text (e.g. street number).&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">min_length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">max_length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;Optional ISO 3166-1 alpha-2 code. When set, results are restricted to that country &quot;</span>
+            <span class="s2">&quot;(Photon bbox bias + OSM countrycode). Unknown codes rely on countrycode-only matching.&quot;</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Max suggestions.&quot;</span><span class="p">),</span>
+    <span class="n">strict_address</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;Photon only: require a real street line (OSM housenumber + street). &quot;</span>
+            <span class="s2">&quot;When the query begins with digits, housenumber must match that prefix (e.g. 123 vs 125). &quot;</span>
+            <span class="s2">&quot;Set false to allow places without separate housenumber/street (noisier).&quot;</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlaceAutocompleteResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Address suggestions — **no billing required** when using the default provider.</span>
+
+<span class="sd">    - **photon** (default): OpenStreetMap data via [Photon](https://photon.komoot.io/)</span>
+<span class="sd">      public API — no API key. OK for development / light use; respect fair use or</span>
+<span class="sd">      [self-host Photon](https://github.com/komoot/photon) for production load.</span>
+<span class="sd">    - **google**: set `PLACES_PROVIDER=google` and `GOOGLE_PLACES_API_KEY`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">provider</span> <span class="o">=</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">PLACES_PROVIDER</span> <span class="ow">or</span> <span class="s2">&quot;photon&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;google&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_autocomplete_google</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;photon&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_autocomplete_photon</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">country</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">strict_address</span><span class="o">=</span><span class="n">strict_address</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+        <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_503_SERVICE_UNAVAILABLE</span><span class="p">,</span>
+        <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Unknown PLACES_PROVIDER=</span><span class="si">{</span><span class="n">provider</span><span class="si">!r}</span><span class="s2">; use &#39;photon&#39; or &#39;google&#39;.&quot;</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

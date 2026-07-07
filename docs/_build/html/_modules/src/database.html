@@ -1,0 +1,641 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.database &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.database</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.database</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">text</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.exc</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeclarativeBase</span><span class="p">,</span> <span class="n">sessionmaker</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+
+<span class="c1"># SQLite needs connect_args; PostgreSQL does not</span>
+<span class="n">connect_args</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">{</span><span class="s2">&quot;check_same_thread&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span> <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+<span class="p">)</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="p">,</span> <span class="n">connect_args</span><span class="o">=</span><span class="n">connect_args</span><span class="p">)</span>
+
+<span class="n">SessionLocal</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">autocommit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">autoflush</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Base">
+<a class="viewcode-back" href="../../modules.html#src.database.Base">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Base</span><span class="p">(</span><span class="n">DeclarativeBase</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="get_db">
+<a class="viewcode-back" href="../../modules.html#src.database.get_db">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_db</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;FastAPI dependency that yields a database session.&quot;&quot;&quot;</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">SessionLocal</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">db</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_tenant_is_platform_column">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_tenant_is_platform_column">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_tenant_is_platform_column</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Additive migration for existing DBs (create_all does not alter columns).</span>
+<span class="sd">    Safe to run on every startup.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="n">text</span><span class="p">(</span>
+                        <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN is_platform BOOLEAN NOT NULL DEFAULT 0&quot;</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="n">text</span><span class="p">(</span>
+                    <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN IF NOT EXISTS is_platform &quot;</span>
+                    <span class="s2">&quot;BOOLEAN NOT NULL DEFAULT false&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">ProgrammingError</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+
+
+<span class="n">_USER_AUTH_COLUMNS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;auth_provider&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(20) NOT NULL DEFAULT &#39;local&#39;&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;google_id&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(255)&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;invite_token&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(255)&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;invite_token_expires_at&quot;</span><span class="p">,</span> <span class="s2">&quot;TIMESTAMP&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;reset_token&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(255)&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;reset_token_expires_at&quot;</span><span class="p">,</span> <span class="s2">&quot;TIMESTAMP&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;email_verified_at&quot;</span><span class="p">,</span> <span class="s2">&quot;TIMESTAMP&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="ensure_user_auth_columns">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_user_auth_columns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_user_auth_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add auth-related columns to users table if they don&#39;t exist.&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="n">_USER_AUTH_COLUMNS</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">is_sqlite</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                        <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ALTER TABLE users ADD COLUMN </span><span class="si">{</span><span class="n">col_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                        <span class="n">text</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;ALTER TABLE users ADD COLUMN IF NOT EXISTS </span><span class="si">{</span><span class="n">col_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_sqlite</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="n">text</span><span class="p">(</span>
+                        <span class="s2">&quot;ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL&quot;</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_product_color_columns">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_product_color_columns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_product_color_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add level, color_family, hex_code columns and migrate tone_family to enum.&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+
+    <span class="n">_new_columns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="s2">&quot;INTEGER&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;hex_code&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(7)&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">is_sqlite</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="n">_new_columns</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ALTER TABLE products ADD COLUMN </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+                <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;ALTER TABLE products ADD COLUMN color_family VARCHAR(10)&quot;</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">enum_name</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;tone_family_enum&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;N&#39;,&#39;A&#39;,&#39;G&#39;,&#39;V&#39;,&#39;R&#39;,&#39;C&#39;,&#39;M&#39;,&#39;H&#39;,&#39;B&#39;,&#39;P&#39;,&#39;T&#39;&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;color_family_enum&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;NEUTRAL&#39;,&#39;COOL&#39;,&#39;WARM&#39;,&#39;RED&#39;,&#39;SPECIAL&#39;&quot;</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;DO $$ BEGIN &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;CREATE TYPE </span><span class="si">{</span><span class="n">enum_name</span><span class="si">}</span><span class="s2"> AS ENUM (</span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s2">); &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;EXCEPTION WHEN duplicate_object THEN NULL; END $$;&quot;</span>
+                <span class="p">))</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                <span class="k">pass</span>
+
+        <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="n">_new_columns</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;ALTER TABLE products ADD COLUMN IF NOT EXISTS </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">))</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span>
+                <span class="s2">&quot;ALTER TABLE products ADD COLUMN IF NOT EXISTS &quot;</span>
+                <span class="s2">&quot;color_family color_family_enum&quot;</span>
+            <span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+        <span class="n">_tone_using</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            CASE</span>
+<span class="s2">                WHEN tone_family IS NULL THEN NULL::tone_family_enum</span>
+<span class="s2">                WHEN trim(tone_family::text) = &#39;RB&#39; THEN &#39;R&#39;::tone_family_enum</span>
+<span class="s2">                WHEN trim(tone_family::text) = &#39;VV&#39; THEN &#39;V&#39;::tone_family_enum</span>
+<span class="s2">                WHEN trim(tone_family::text) IN (</span>
+<span class="s2">                    &#39;N&#39;,&#39;A&#39;,&#39;G&#39;,&#39;V&#39;,&#39;R&#39;,&#39;C&#39;,&#39;M&#39;,&#39;H&#39;,&#39;B&#39;,&#39;P&#39;,&#39;T&#39;</span>
+<span class="s2">                ) THEN trim(tone_family::text)::tone_family_enum</span>
+<span class="s2">                ELSE NULL::tone_family_enum</span>
+<span class="s2">            END</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span>
+                <span class="s2">&quot;ALTER TABLE products ALTER COLUMN tone_family TYPE tone_family_enum &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;USING </span><span class="si">{</span><span class="n">_tone_using</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+            <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_tenant_product_pack_columns">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_tenant_product_pack_columns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_tenant_product_pack_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add salon pack size columns (value + G | ML | OZ unit).&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;pack_size_value&quot;</span><span class="p">,</span> <span class="s2">&quot;REAL&quot;</span> <span class="k">if</span> <span class="n">is_sqlite</span> <span class="k">else</span> <span class="s2">&quot;NUMERIC(12,4)&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;pack_size_unit&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(10)&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">is_sqlite</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                        <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ALTER TABLE tenant_products ADD COLUMN </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">return</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="n">text</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;ALTER TABLE tenant_products &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;ADD COLUMN IF NOT EXISTS </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_preferred_stock_columns">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_preferred_stock_columns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_preferred_stock_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add preferred_stock_qty to tenant_products and inventory_items.&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+    <span class="n">col_type</span> <span class="o">=</span> <span class="s2">&quot;REAL&quot;</span> <span class="k">if</span> <span class="n">is_sqlite</span> <span class="k">else</span> <span class="s2">&quot;NUMERIC(12,2)&quot;</span>
+    <span class="n">tables</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;tenant_products&quot;</span><span class="p">,</span> <span class="s2">&quot;inventory_items&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_sqlite</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                        <span class="n">text</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;ALTER TABLE </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> ADD COLUMN preferred_stock_qty </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">return</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="n">text</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;ALTER TABLE </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;ADD COLUMN IF NOT EXISTS preferred_stock_qty </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_reorder_ordered_at_column">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_reorder_ordered_at_column">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_reorder_ordered_at_column</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add reorder_ordered_at to inventory_items.&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_sqlite</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="n">text</span><span class="p">(</span>
+                        <span class="s2">&quot;ALTER TABLE inventory_items ADD COLUMN reorder_ordered_at TIMESTAMP&quot;</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="n">text</span><span class="p">(</span>
+                    <span class="s2">&quot;ALTER TABLE inventory_items &quot;</span>
+                    <span class="s2">&quot;ADD COLUMN IF NOT EXISTS reorder_ordered_at &quot;</span>
+                    <span class="s2">&quot;TIMESTAMP WITH TIME ZONE&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+            <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_formula_visit_schema">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_formula_visit_schema">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_formula_visit_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create formula_visits and link columns on formulas.&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_sqlite</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="n">text</span><span class="p">(</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                    CREATE TABLE IF NOT EXISTS formula_visits (</span>
+<span class="sd">                        id VARCHAR(36) PRIMARY KEY,</span>
+<span class="sd">                        tenant_id VARCHAR(36) NOT NULL,</span>
+<span class="sd">                        location_id VARCHAR(36) NOT NULL,</span>
+<span class="sd">                        customer_id VARCHAR(36) NOT NULL,</span>
+<span class="sd">                        created_by_user_id VARCHAR(36) NOT NULL,</span>
+<span class="sd">                        session_name VARCHAR(150),</span>
+<span class="sd">                        service_type VARCHAR(50),</span>
+<span class="sd">                        notes TEXT,</span>
+<span class="sd">                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,</span>
+<span class="sd">                        FOREIGN KEY(tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,</span>
+<span class="sd">                        FOREIGN KEY(location_id) REFERENCES locations(id),</span>
+<span class="sd">                        FOREIGN KEY(customer_id) REFERENCES customers(id),</span>
+<span class="sd">                        FOREIGN KEY(created_by_user_id) REFERENCES users(id)</span>
+<span class="sd">                    )</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">ddl</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="s2">&quot;ALTER TABLE formulas ADD COLUMN visit_id VARCHAR(36)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ALTER TABLE formulas ADD COLUMN bowl_label VARCHAR(100)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ALTER TABLE formulas ADD COLUMN bowl_sort_order INTEGER&quot;</span><span class="p">,</span>
+            <span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="n">ddl</span><span class="p">))</span>
+                <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">return</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                CREATE TABLE IF NOT EXISTS formula_visits (</span>
+<span class="sd">                    id VARCHAR(36) PRIMARY KEY,</span>
+<span class="sd">                    tenant_id VARCHAR(36) NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,</span>
+<span class="sd">                    location_id VARCHAR(36) NOT NULL REFERENCES locations(id),</span>
+<span class="sd">                    customer_id VARCHAR(36) NOT NULL REFERENCES customers(id),</span>
+<span class="sd">                    created_by_user_id VARCHAR(36) NOT NULL REFERENCES users(id),</span>
+<span class="sd">                    session_name VARCHAR(150),</span>
+<span class="sd">                    service_type VARCHAR(50),</span>
+<span class="sd">                    notes TEXT,</span>
+<span class="sd">                    created_at TIMESTAMPTZ DEFAULT now() NOT NULL</span>
+<span class="sd">                )</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span>
+                <span class="s2">&quot;CREATE INDEX IF NOT EXISTS ix_formula_visits_tenant_id &quot;</span>
+                <span class="s2">&quot;ON formula_visits (tenant_id)&quot;</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span>
+                <span class="s2">&quot;CREATE INDEX IF NOT EXISTS ix_formula_visits_customer_id &quot;</span>
+                <span class="s2">&quot;ON formula_visits (customer_id)&quot;</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">ddl</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;ALTER TABLE formulas ADD COLUMN IF NOT EXISTS visit_id VARCHAR(36)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ALTER TABLE formulas ADD COLUMN IF NOT EXISTS bowl_label VARCHAR(100)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ALTER TABLE formulas ADD COLUMN IF NOT EXISTS bowl_sort_order INTEGER&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="n">ddl</span><span class="p">))</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="n">text</span><span class="p">(</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                    DO $$</span>
+<span class="sd">                    BEGIN</span>
+<span class="sd">                        IF NOT EXISTS (</span>
+<span class="sd">                            SELECT 1 FROM pg_constraint WHERE conname = &#39;fk_formulas_visit_id&#39;</span>
+<span class="sd">                        ) THEN</span>
+<span class="sd">                            ALTER TABLE formulas</span>
+<span class="sd">                            ADD CONSTRAINT fk_formulas_visit_id</span>
+<span class="sd">                            FOREIGN KEY (visit_id) REFERENCES formula_visits(id)</span>
+<span class="sd">                            ON DELETE CASCADE;</span>
+<span class="sd">                        END IF;</span>
+<span class="sd">                    END $$;</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="n">text</span><span class="p">(</span><span class="s2">&quot;CREATE INDEX IF NOT EXISTS ix_formulas_visit_id ON formulas (visit_id)&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+            <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_tenant_subscription_columns">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_tenant_subscription_columns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_tenant_subscription_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add subscription billing columns to tenants if missing.&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+    <span class="n">columns_pg</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN IF NOT EXISTS billing_interval VARCHAR(20)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(30)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN IF NOT EXISTS period_start TIMESTAMPTZ&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN IF NOT EXISTS period_end TIMESTAMPTZ&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN IF NOT EXISTS cancel_at_period_end &quot;</span>
+        <span class="s2">&quot;BOOLEAN NOT NULL DEFAULT false&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">columns_sqlite</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;billing_interval&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(20)&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;subscription_status&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(30)&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;period_start&quot;</span><span class="p">,</span> <span class="s2">&quot;DATETIME&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;period_end&quot;</span><span class="p">,</span> <span class="s2">&quot;DATETIME&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;cancel_at_period_end&quot;</span><span class="p">,</span> <span class="s2">&quot;BOOLEAN NOT NULL DEFAULT 0&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_sqlite</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="n">columns_sqlite</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                        <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ALTER TABLE tenants ADD COLUMN </span><span class="si">{</span><span class="n">col_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ddl</span> <span class="ow">in</span> <span class="n">columns_pg</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="n">ddl</span><span class="p">))</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_tenant_stripe_columns">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_tenant_stripe_columns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_tenant_stripe_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add Stripe billing columns to tenants if missing.&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+    <span class="n">columns_pg</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(255)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ALTER TABLE tenants ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(255)&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">columns_sqlite</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;stripe_customer_id&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(255)&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;stripe_subscription_id&quot;</span><span class="p">,</span> <span class="s2">&quot;VARCHAR(255)&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_sqlite</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="n">columns_sqlite</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                        <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ALTER TABLE tenants ADD COLUMN </span><span class="si">{</span><span class="n">col_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">col_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="n">OperationalError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ddl</span> <span class="ow">in</span> <span class="n">columns_pg</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="n">ddl</span><span class="p">))</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                    <span class="k">pass</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="s2">&quot;CREATE INDEX IF NOT EXISTS ix_tenants_stripe_customer_id &quot;</span>
+                <span class="s2">&quot;ON tenants (stripe_customer_id)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;CREATE INDEX IF NOT EXISTS ix_tenants_stripe_subscription_id &quot;</span>
+                <span class="s2">&quot;ON tenants (stripe_subscription_id)&quot;</span><span class="p">,</span>
+            <span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ensure_subscription_events_table">
+<a class="viewcode-back" href="../../modules.html#src.database.ensure_subscription_events_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_subscription_events_table</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create subscription_events audit table if missing.&quot;&quot;&quot;</span>
+    <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+    <span class="n">ddl_pg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        CREATE TABLE IF NOT EXISTS subscription_events (</span>
+<span class="s2">            id VARCHAR(36) PRIMARY KEY,</span>
+<span class="s2">            tenant_id VARCHAR(36) NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,</span>
+<span class="s2">            event_type VARCHAR(50) NOT NULL,</span>
+<span class="s2">            source VARCHAR(30) NOT NULL DEFAULT &#39;system&#39;,</span>
+<span class="s2">            stripe_event_id VARCHAR(255),</span>
+<span class="s2">            summary VARCHAR(500) NOT NULL,</span>
+<span class="s2">            amount_cents INTEGER,</span>
+<span class="s2">            currency VARCHAR(10),</span>
+<span class="s2">            billing_interval VARCHAR(20),</span>
+<span class="s2">            subscription_status VARCHAR(30),</span>
+<span class="s2">            details_json TEXT,</span>
+<span class="s2">            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),</span>
+<span class="s2">            CONSTRAINT uq_subscription_events_stripe_event_id UNIQUE (stripe_event_id)</span>
+<span class="s2">        )</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+    <span class="n">ddl_sqlite</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        CREATE TABLE IF NOT EXISTS subscription_events (</span>
+<span class="s2">            id VARCHAR(36) PRIMARY KEY,</span>
+<span class="s2">            tenant_id VARCHAR(36) NOT NULL,</span>
+<span class="s2">            event_type VARCHAR(50) NOT NULL,</span>
+<span class="s2">            source VARCHAR(30) NOT NULL DEFAULT &#39;system&#39;,</span>
+<span class="s2">            stripe_event_id VARCHAR(255) UNIQUE,</span>
+<span class="s2">            summary VARCHAR(500) NOT NULL,</span>
+<span class="s2">            amount_cents INTEGER,</span>
+<span class="s2">            currency VARCHAR(10),</span>
+<span class="s2">            billing_interval VARCHAR(20),</span>
+<span class="s2">            subscription_status VARCHAR(30),</span>
+<span class="s2">            details_json TEXT,</span>
+<span class="s2">            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,</span>
+<span class="s2">            FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE</span>
+<span class="s2">        )</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+    <span class="n">indexes</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;CREATE INDEX IF NOT EXISTS ix_subscription_events_tenant_id &quot;</span>
+        <span class="s2">&quot;ON subscription_events (tenant_id)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CREATE INDEX IF NOT EXISTS ix_subscription_events_event_type &quot;</span>
+        <span class="s2">&quot;ON subscription_events (event_type)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CREATE INDEX IF NOT EXISTS ix_subscription_events_created_at &quot;</span>
+        <span class="s2">&quot;ON subscription_events (created_at)&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="n">ddl_pg</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_sqlite</span> <span class="k">else</span> <span class="n">ddl_sqlite</span><span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span><span class="p">):</span>
+                <span class="k">pass</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

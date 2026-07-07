@@ -1,0 +1,644 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.routers.tenants &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.routers.tenants</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.routers.tenants</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">APIRouter</span><span class="p">,</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">Query</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_db</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.schemas.tenant</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TenantCreate</span><span class="p">,</span>
+    <span class="n">TenantRead</span><span class="p">,</span>
+    <span class="n">TenantUpdate</span><span class="p">,</span>
+    <span class="n">LocationCreate</span><span class="p">,</span>
+    <span class="n">LocationRead</span><span class="p">,</span>
+    <span class="n">LocationUpdate</span><span class="p">,</span>
+    <span class="n">TenantRegistration</span><span class="p">,</span>
+    <span class="n">TenantRegistrationResponse</span><span class="p">,</span>
+    <span class="n">TenantSubscriptionRead</span><span class="p">,</span>
+    <span class="n">SubscriptionEventRead</span><span class="p">,</span>
+    <span class="n">SubscriptionCancelRequest</span><span class="p">,</span>
+    <span class="n">SubscriptionRenewRequest</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.schemas.user</span><span class="w"> </span><span class="kn">import</span> <span class="n">UserCreate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.crud</span><span class="w"> </span><span class="kn">import</span> <span class="n">tenant</span> <span class="k">as</span> <span class="n">crud</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.crud</span><span class="w"> </span><span class="kn">import</span> <span class="n">user</span> <span class="k">as</span> <span class="n">user_crud</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.deps</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_current_user</span><span class="p">,</span>
+    <span class="n">require_super_admin</span><span class="p">,</span>
+    <span class="n">require_role</span><span class="p">,</span>
+    <span class="n">can_access_tenant</span><span class="p">,</span>
+    <span class="n">is_platform_super_admin</span><span class="p">,</span>
+    <span class="n">require_salon_staff_admin_or_manager</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.pagination</span><span class="w"> </span><span class="kn">import</span> <span class="n">PaginatedResponse</span><span class="p">,</span> <span class="n">calculate_skip</span><span class="p">,</span> <span class="n">calculate_total_pages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.user</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.tenant</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tenant</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.subscription</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">VALID_BILLING_INTERVALS</span><span class="p">,</span>
+    <span class="n">initial_subscription_dates</span><span class="p">,</span>
+    <span class="n">refresh_tenant_subscription</span><span class="p">,</span>
+    <span class="n">renew_tenant_subscription</span><span class="p">,</span>
+    <span class="n">subscription_read_from_tenant</span><span class="p">,</span>
+    <span class="n">subscription_has_access</span><span class="p">,</span>
+    <span class="n">tenant_uses_stripe_billing</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.crud</span><span class="w"> </span><span class="kn">import</span> <span class="n">subscription_plan</span> <span class="k">as</span> <span class="n">plan_crud</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.services</span><span class="w"> </span><span class="kn">import</span> <span class="n">stripe_billing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.services.subscription_events</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EVENT_MANUAL_RENEW</span><span class="p">,</span>
+    <span class="n">EVENT_TRIAL_STARTED</span><span class="p">,</span>
+    <span class="n">count_subscription_events</span><span class="p">,</span>
+    <span class="n">list_subscription_events</span><span class="p">,</span>
+    <span class="n">record_subscription_event</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/tenants&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Tenants&quot;</span><span class="p">])</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Tenants</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="list_tenants">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.list_tenants">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">TenantRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_tenants</span><span class="p">(</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">include_platform</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If true, include the platform tenant in the list (super admin only).&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List salon tenants (and optionally the platform tenant). Platform administrators only.&quot;&quot;&quot;</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="n">exclude_platform</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">include_platform</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenants</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span> <span class="n">exclude_platform</span><span class="o">=</span><span class="n">exclude_platform</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">count_tenants</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">exclude_platform</span><span class="o">=</span><span class="n">exclude_platform</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_my_tenant">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.get_my_tenant">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/mine&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_my_tenant</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the current user&#39;s tenant (salon or platform). Any authenticated user.&quot;&quot;&quot;</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">refresh_tenant_subscription</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tenant</span></div>
+
+
+
+<div class="viewcode-block" id="get_my_subscription">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.get_my_subscription">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/mine/subscription&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_my_subscription</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Current salon subscription (flat-rate dose plan, no payment provider).&quot;&quot;&quot;</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">refresh_tenant_subscription</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">TenantSubscriptionRead</span><span class="p">(</span><span class="o">**</span><span class="n">subscription_read_from_tenant</span><span class="p">(</span><span class="n">tenant</span><span class="p">,</span> <span class="n">db</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="get_my_subscription_events">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.get_my_subscription_events">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/mine/subscription/events&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">SubscriptionEventRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_my_subscription_events</span><span class="p">(</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_role</span><span class="p">(</span><span class="s2">&quot;ADMIN&quot;</span><span class="p">)),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Billing audit history for the current salon (admin only).&quot;&quot;&quot;</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span> <span class="ow">or</span> <span class="n">tenant</span><span class="o">.</span><span class="n">is_platform</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">list_subscription_events</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">count_subscription_events</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="cancel_my_subscription">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.cancel_my_subscription">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/mine/subscription/cancel&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cancel_my_subscription</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">SubscriptionCancelRequest</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_role</span><span class="p">(</span><span class="s2">&quot;ADMIN&quot;</span><span class="p">)),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cancel auto-renewal at end of current period (salon admin).&quot;&quot;&quot;</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span> <span class="ow">or</span> <span class="n">tenant</span><span class="o">.</span><span class="n">is_platform</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tenant_uses_stripe_billing</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span> <span class="ow">and</span> <span class="n">stripe_billing</span><span class="o">.</span><span class="n">stripe_enabled</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stripe_billing</span><span class="o">.</span><span class="n">cancel_subscription_at_period_end</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_502_BAD_GATEWAY</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Could not update Stripe subscription: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">cancel_at_period_end</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">cancel_at_period_end</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">TenantSubscriptionRead</span><span class="p">(</span><span class="o">**</span><span class="n">subscription_read_from_tenant</span><span class="p">(</span><span class="n">tenant</span><span class="p">,</span> <span class="n">db</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="reactivate_my_subscription">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.reactivate_my_subscription">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/mine/subscription/reactivate&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reactivate_my_subscription</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_role</span><span class="p">(</span><span class="s2">&quot;ADMIN&quot;</span><span class="p">)),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Turn auto-renewal back on (salon admin).&quot;&quot;&quot;</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span> <span class="ow">or</span> <span class="n">tenant</span><span class="o">.</span><span class="n">is_platform</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subscription_has_access</span><span class="p">(</span><span class="n">tenant</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Subscription has expired. Use Renew subscription to restore access.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">tenant_uses_stripe_billing</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span> <span class="ow">and</span> <span class="n">stripe_billing</span><span class="o">.</span><span class="n">stripe_enabled</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stripe_billing</span><span class="o">.</span><span class="n">reactivate_stripe_subscription</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_502_BAD_GATEWAY</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Could not update Stripe subscription: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+    <span class="n">tenant</span><span class="o">.</span><span class="n">cancel_at_period_end</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span> <span class="o">==</span> <span class="s2">&quot;canceled&quot;</span><span class="p">:</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span> <span class="o">=</span> <span class="s2">&quot;active&quot;</span>
+        <span class="n">tenant</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;active&quot;</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">TenantSubscriptionRead</span><span class="p">(</span><span class="o">**</span><span class="n">subscription_read_from_tenant</span><span class="p">(</span><span class="n">tenant</span><span class="p">,</span> <span class="n">db</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="renew_my_subscription">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.renew_my_subscription">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/mine/subscription/renew&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">renew_my_subscription</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">SubscriptionRenewRequest</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_role</span><span class="p">(</span><span class="s2">&quot;ADMIN&quot;</span><span class="p">)),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extend or restore salon subscription (salon admin). Manual renew when not on Stripe.&quot;&quot;&quot;</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span> <span class="ow">or</span> <span class="n">tenant</span><span class="o">.</span><span class="n">is_platform</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tenant_uses_stripe_billing</span><span class="p">(</span><span class="n">tenant</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;This salon is billed through Stripe. Use Manage billing to renew or change plan.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">renew_tenant_subscription</span><span class="p">(</span>
+            <span class="n">tenant</span><span class="p">,</span>
+            <span class="n">billing_interval</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+            <span class="n">from_trial</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span> <span class="o">==</span> <span class="s2">&quot;trialing&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+    <span class="n">record_subscription_event</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="o">=</span><span class="n">EVENT_MANUAL_RENEW</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span>
+        <span class="n">summary</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Subscription manually extended (</span><span class="si">{</span><span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span><span class="si">}</span><span class="s2"> plan).&quot;</span><span class="p">,</span>
+        <span class="n">billing_interval</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+        <span class="n">subscription_status</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">subscription_status</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">TenantSubscriptionRead</span><span class="p">(</span><span class="o">**</span><span class="n">subscription_read_from_tenant</span><span class="p">(</span><span class="n">tenant</span><span class="p">,</span> <span class="n">db</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="register_tenant">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.register_tenant">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">&quot;/register&quot;</span><span class="p">,</span>
+    <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRegistrationResponse</span><span class="p">,</span>
+    <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">,</span>
+    <span class="n">summary</span><span class="o">=</span><span class="s2">&quot;Register a new tenant&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Public endpoint to register a new tenant, create default location, and admin user.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_tenant</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">TenantRegistration</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Register a new tenant (salon business).</span>
+
+<span class="sd">    This endpoint:</span>
+<span class="sd">    1. Creates a new tenant</span>
+<span class="sd">    2. Creates a default location</span>
+<span class="sd">    3. Creates the first admin user</span>
+<span class="sd">    4. Returns tenant, location, and admin user info</span>
+
+<span class="sd">    After registration, use the admin email and password to login.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check if email already exists</span>
+    <span class="n">existing_users</span> <span class="o">=</span> <span class="n">user_crud</span><span class="o">.</span><span class="n">get_users_by_email</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">admin_email</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">existing_users</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Email already registered. Please use a different email.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Create tenant with dose unlimited subscription (trial, then auto-renew)</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">billing_interval</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_BILLING_INTERVALS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;billing_interval must be monthly, annual, or biannual&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">period_start</span><span class="p">,</span> <span class="n">period_end</span> <span class="o">=</span> <span class="n">initial_subscription_dates</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span> <span class="n">trial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tenant_data</span> <span class="o">=</span> <span class="n">TenantCreate</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">tenant_name</span><span class="p">,</span>
+        <span class="n">plan</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">plan</span> <span class="ow">or</span> <span class="s2">&quot;dose_unlimited&quot;</span><span class="p">,</span>
+        <span class="n">status</span><span class="o">=</span><span class="s2">&quot;trial&quot;</span><span class="p">,</span>
+        <span class="n">is_platform</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">billing_interval</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+        <span class="n">subscription_status</span><span class="o">=</span><span class="s2">&quot;trialing&quot;</span><span class="p">,</span>
+        <span class="n">period_start</span><span class="o">=</span><span class="n">period_start</span><span class="p">,</span>
+        <span class="n">period_end</span><span class="o">=</span><span class="n">period_end</span><span class="p">,</span>
+        <span class="n">cancel_at_period_end</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">create_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_data</span><span class="p">)</span>
+
+    <span class="n">record_subscription_event</span><span class="p">(</span>
+        <span class="n">db</span><span class="p">,</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="o">=</span><span class="n">EVENT_TRIAL_STARTED</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="p">,</span>
+        <span class="n">summary</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">plan_crud</span><span class="o">.</span><span class="n">get_trial_days</span><span class="p">(</span><span class="n">db</span><span class="p">)</span><span class="si">}</span><span class="s2">-day free trial started (</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">billing_interval</span><span class="si">}</span><span class="s2"> plan).&quot;</span><span class="p">,</span>
+        <span class="n">billing_interval</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+        <span class="n">subscription_status</span><span class="o">=</span><span class="s2">&quot;trialing&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create default location</span>
+    <span class="n">location_data</span> <span class="o">=</span> <span class="n">LocationCreate</span><span class="p">(</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">location_name</span><span class="p">,</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">location_address</span><span class="p">,</span>
+        <span class="n">timezone</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">location_timezone</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">create_location</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">location_data</span><span class="p">)</span>
+
+    <span class="c1"># Create admin user</span>
+    <span class="n">admin_user_data</span> <span class="o">=</span> <span class="n">UserCreate</span><span class="p">(</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="n">tenant</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">email</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">admin_email</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">admin_password</span><span class="p">,</span>
+        <span class="n">full_name</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">admin_full_name</span><span class="p">,</span>
+        <span class="n">role</span><span class="o">=</span><span class="s2">&quot;ADMIN&quot;</span><span class="p">,</span>
+        <span class="n">is_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default_location_id</span><span class="o">=</span><span class="n">location</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">admin_user</span> <span class="o">=</span> <span class="n">user_crud</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">admin_user_data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">TenantRegistrationResponse</span><span class="p">(</span>
+        <span class="n">tenant</span><span class="o">=</span><span class="n">tenant</span><span class="p">,</span>
+        <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span>
+        <span class="n">admin_user_id</span><span class="o">=</span><span class="n">admin_user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">admin_email</span><span class="o">=</span><span class="n">admin_user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+        <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Tenant registered successfully. You can now login with your admin credentials.&quot;</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_tenant">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.create_tenant">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_tenant</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">TenantCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a tenant (platform administrators only). Salon tenants must use `is_platform=false`.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">is_platform</span><span class="p">:</span>
+        <span class="n">existing</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Tenant</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Tenant</span><span class="o">.</span><span class="n">is_platform</span><span class="o">.</span><span class="n">is_</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;A platform tenant already exists&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">crud</span><span class="o">.</span><span class="n">create_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="renew_tenant_subscription_admin">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.renew_tenant_subscription_admin">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/subscription/renew&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">renew_tenant_subscription_admin</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">SubscriptionRenewRequest</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Platform admin: renew or extend a salon subscription.&quot;&quot;&quot;</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span> <span class="ow">or</span> <span class="n">tenant</span><span class="o">.</span><span class="n">is_platform</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">renew_tenant_subscription</span><span class="p">(</span>
+            <span class="n">tenant</span><span class="p">,</span>
+            <span class="n">billing_interval</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">billing_interval</span><span class="p">,</span>
+            <span class="n">from_trial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tenant</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">TenantSubscriptionRead</span><span class="p">(</span><span class="o">**</span><span class="n">subscription_read_from_tenant</span><span class="p">(</span><span class="n">tenant</span><span class="p">,</span> <span class="n">db</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="get_tenant">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.get_tenant">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_tenant</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_access_tenant</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Access denied&quot;</span><span class="p">)</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tenant</span></div>
+
+
+
+<div class="viewcode-block" id="update_tenant">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.update_tenant">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_tenant</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">TenantUpdate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">update_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tenant</span></div>
+
+
+
+<div class="viewcode-block" id="delete_tenant">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.delete_tenant">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_tenant</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">tenant</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tenant</span> <span class="ow">and</span> <span class="n">tenant</span><span class="o">.</span><span class="n">is_platform</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;The platform tenant cannot be deleted&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">crud</span><span class="o">.</span><span class="n">delete_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant not found&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Locations (nested under tenant)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="list_locations">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.list_locations">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/locations&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">LocationRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_locations</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_access_tenant</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Access denied&quot;</span><span class="p">)</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">get_locations_by_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">count_locations_by_tenant</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_location">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.create_location">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/locations&quot;</span><span class="p">,</span>
+    <span class="n">response_model</span><span class="o">=</span><span class="n">LocationRead</span><span class="p">,</span>
+    <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_location</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">LocationCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Platform accounts cannot manage salon locations; use a salon admin user&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_access_tenant</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Access denied&quot;</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">=</span> <span class="n">tenant_id</span>
+    <span class="k">return</span> <span class="n">crud</span><span class="o">.</span><span class="n">create_location</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="update_location">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.update_location">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/locations/</span><span class="si">{location_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">LocationRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_location</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">LocationUpdate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Platform accounts cannot manage salon locations; use a salon admin user&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_access_tenant</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Access denied&quot;</span><span class="p">)</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">crud</span><span class="o">.</span><span class="n">update_location</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">location_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">location</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Location not found&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">location</span></div>
+
+
+
+<div class="viewcode-block" id="delete_location">
+<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.delete_location">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+    <span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/locations/</span><span class="si">{location_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_location</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_role</span><span class="p">(</span><span class="s2">&quot;ADMIN&quot;</span><span class="p">)),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Platform accounts cannot manage salon locations; use a salon admin user&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">can_access_tenant</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Access denied&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">crud</span><span class="o">.</span><span class="n">delete_location</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">location_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Location not found&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

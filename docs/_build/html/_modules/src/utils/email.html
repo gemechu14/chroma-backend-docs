@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.utils.email &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.utils.email</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.utils.email</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Email utilities with branded HTML templates.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">smtplib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">email.mime.multipart</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIMEMultipart</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">email.mime.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIMEText</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">BRAND_COLOR</span> <span class="o">=</span> <span class="s2">&quot;#6C3FC5&quot;</span>
+<span class="n">BRAND_NAME</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">APP_NAME</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_base_template</span><span class="p">(</span><span class="n">body_content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">&lt;!DOCTYPE html&gt;</span>
+<span class="s2">&lt;html lang=&quot;en&quot;&gt;</span>
+<span class="s2">&lt;head&gt;&lt;meta charset=&quot;UTF-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;&lt;/head&gt;</span>
+<span class="s2">&lt;body style=&quot;margin:0;padding:0;background-color:#f4f4f7;font-family:&#39;Segoe UI&#39;,Roboto,Helvetica,Arial,sans-serif;&quot;&gt;</span>
+<span class="s2">&lt;table role=&quot;presentation&quot; width=&quot;100%&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;background-color:#f4f4f7;padding:40px 0;&quot;&gt;</span>
+<span class="s2">&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;</span>
+<span class="s2">&lt;table role=&quot;presentation&quot; width=&quot;600&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);&quot;&gt;</span>
+<span class="s2">  &lt;!-- Header --&gt;</span>
+<span class="s2">  &lt;tr&gt;</span>
+<span class="s2">    &lt;td style=&quot;background:linear-gradient(135deg,</span><span class="si">{</span><span class="n">BRAND_COLOR</span><span class="si">}</span><span class="s2">,#8B5CF6);padding:32px 40px;text-align:center;&quot;&gt;</span>
+<span class="s2">      &lt;h1 style=&quot;margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;&quot;&gt;</span><span class="si">{</span><span class="n">BRAND_NAME</span><span class="si">}</span><span class="s2">&lt;/h1&gt;</span>
+<span class="s2">      &lt;p style=&quot;margin:4px 0 0;color:rgba(255,255,255,0.85);font-size:13px;&quot;&gt;Professional Color Management Platform&lt;/p&gt;</span>
+<span class="s2">    &lt;/td&gt;</span>
+<span class="s2">  &lt;/tr&gt;</span>
+<span class="s2">  &lt;!-- Body --&gt;</span>
+<span class="s2">  &lt;tr&gt;</span>
+<span class="s2">    &lt;td style=&quot;padding:40px;&quot;&gt;</span>
+<span class="s2">      </span><span class="si">{</span><span class="n">body_content</span><span class="si">}</span>
+<span class="s2">    &lt;/td&gt;</span>
+<span class="s2">  &lt;/tr&gt;</span>
+<span class="s2">  &lt;!-- Footer --&gt;</span>
+<span class="s2">  &lt;tr&gt;</span>
+<span class="s2">    &lt;td style=&quot;background-color:#f9fafb;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;&quot;&gt;</span>
+<span class="s2">      &lt;p style=&quot;margin:0;color:#9ca3af;font-size:12px;&quot;&gt;&amp;copy; 2026 </span><span class="si">{</span><span class="n">BRAND_NAME</span><span class="si">}</span><span class="s2">. All rights reserved.&lt;/p&gt;</span>
+<span class="s2">      &lt;p style=&quot;margin:4px 0 0;color:#9ca3af;font-size:11px;&quot;&gt;This is an automated message. Please do not reply directly.&lt;/p&gt;</span>
+<span class="s2">    &lt;/td&gt;</span>
+<span class="s2">  &lt;/tr&gt;</span>
+<span class="s2">&lt;/table&gt;</span>
+<span class="s2">&lt;/td&gt;&lt;/tr&gt;</span>
+<span class="s2">&lt;/table&gt;</span>
+<span class="s2">&lt;/body&gt;</span>
+<span class="s2">&lt;/html&gt;&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_button</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;&lt;table role=&quot;presentation&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;margin:28px auto;&quot;&gt;&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;&lt;tr&gt;&lt;td style=&quot;border-radius:8px;background-color:</span><span class="si">{</span><span class="n">BRAND_COLOR</span><span class="si">}</span><span class="s1">;&quot;&gt;&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;&lt;a href=&quot;</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1">&quot; target=&quot;_blank&quot; style=&quot;display:inline-block;padding:14px 36px;&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;border-radius:8px;&quot;&gt;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1">&lt;/a&gt;&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&#39;</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="invite_email_html">
+<a class="viewcode-back" href="../../../modules.html#src.utils.email.invite_email_html">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">invite_email_html</span><span class="p">(</span><span class="n">full_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">invite_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">&lt;h2 style=&quot;margin:0 0 16px;color:#1f2937;font-size:22px;&quot;&gt;Welcome to </span><span class="si">{</span><span class="n">BRAND_NAME</span><span class="si">}</span><span class="s2">!&lt;/h2&gt;</span>
+<span class="s2">&lt;p style=&quot;color:#4b5563;font-size:15px;line-height:1.6;&quot;&gt;</span>
+<span class="s2">  Hi &lt;strong&gt;</span><span class="si">{</span><span class="n">full_name</span><span class="si">}</span><span class="s2">&lt;/strong&gt;,</span>
+<span class="s2">&lt;/p&gt;</span>
+<span class="s2">&lt;p style=&quot;color:#4b5563;font-size:15px;line-height:1.6;&quot;&gt;</span>
+<span class="s2">  You&#39;ve been invited to join </span><span class="si">{</span><span class="n">BRAND_NAME</span><span class="si">}</span><span class="s2">. Click the button below to set your password and activate your account.</span>
+<span class="s2">&lt;/p&gt;</span>
+<span class="si">{</span><span class="n">_button</span><span class="p">(</span><span class="n">invite_url</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Set Your Password&quot;</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">&lt;p style=&quot;color:#6b7280;font-size:13px;line-height:1.5;&quot;&gt;</span>
+<span class="s2">  If the button doesn&#39;t work, copy and paste this link into your browser:&lt;br/&gt;</span>
+<span class="s2">  &lt;a href=&quot;</span><span class="si">{</span><span class="n">invite_url</span><span class="si">}</span><span class="s2">&quot; style=&quot;color:</span><span class="si">{</span><span class="n">BRAND_COLOR</span><span class="si">}</span><span class="s2">;word-break:break-all;&quot;&gt;</span><span class="si">{</span><span class="n">invite_url</span><span class="si">}</span><span class="s2">&lt;/a&gt;</span>
+<span class="s2">&lt;/p&gt;</span>
+<span class="s2">&lt;p style=&quot;color:#9ca3af;font-size:12px;margin-top:24px;&quot;&gt;This link expires in 72 hours.&lt;/p&gt;&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_base_template</span><span class="p">(</span><span class="n">body</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="reset_password_email_html">
+<a class="viewcode-back" href="../../../modules.html#src.utils.email.reset_password_email_html">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reset_password_email_html</span><span class="p">(</span><span class="n">full_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">reset_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">&lt;h2 style=&quot;margin:0 0 16px;color:#1f2937;font-size:22px;&quot;&gt;Reset Your Password&lt;/h2&gt;</span>
+<span class="s2">&lt;p style=&quot;color:#4b5563;font-size:15px;line-height:1.6;&quot;&gt;</span>
+<span class="s2">  Hi &lt;strong&gt;</span><span class="si">{</span><span class="n">full_name</span><span class="si">}</span><span class="s2">&lt;/strong&gt;,</span>
+<span class="s2">&lt;/p&gt;</span>
+<span class="s2">&lt;p style=&quot;color:#4b5563;font-size:15px;line-height:1.6;&quot;&gt;</span>
+<span class="s2">  We received a request to reset your password. Click the button below to choose a new one.</span>
+<span class="s2">&lt;/p&gt;</span>
+<span class="si">{</span><span class="n">_button</span><span class="p">(</span><span class="n">reset_url</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Reset Password&quot;</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">&lt;p style=&quot;color:#6b7280;font-size:13px;line-height:1.5;&quot;&gt;</span>
+<span class="s2">  If the button doesn&#39;t work, copy and paste this link into your browser:&lt;br/&gt;</span>
+<span class="s2">  &lt;a href=&quot;</span><span class="si">{</span><span class="n">reset_url</span><span class="si">}</span><span class="s2">&quot; style=&quot;color:</span><span class="si">{</span><span class="n">BRAND_COLOR</span><span class="si">}</span><span class="s2">;word-break:break-all;&quot;&gt;</span><span class="si">{</span><span class="n">reset_url</span><span class="si">}</span><span class="s2">&lt;/a&gt;</span>
+<span class="s2">&lt;/p&gt;</span>
+<span class="s2">&lt;p style=&quot;color:#9ca3af;font-size:12px;margin-top:24px;&quot;&gt;</span>
+<span class="s2">  This link expires in 1 hour. If you didn&#39;t request this, you can safely ignore this email.</span>
+<span class="s2">&lt;/p&gt;&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_base_template</span><span class="p">(</span><span class="n">body</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_SMTPIPv4</span><span class="p">(</span><span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;SMTP client that connects over IPv4 only (avoids broken IPv6 routes on some Windows setups).&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_socket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">timeout</span><span class="p">):</span>  <span class="c1"># type: ignore[override]</span>
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">timeout</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Non-blocking socket (timeout=0) is not supported&quot;</span><span class="p">)</span>
+        <span class="n">last_err</span><span class="p">:</span> <span class="ne">OSError</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">socket</span><span class="o">.</span><span class="n">getaddrinfo</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">):</span>
+            <span class="n">af</span><span class="p">,</span> <span class="n">socktype</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">_canon</span><span class="p">,</span> <span class="n">sa</span> <span class="o">=</span> <span class="n">res</span>
+            <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">af</span><span class="p">,</span> <span class="n">socktype</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span>
+            <span class="n">sock</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sock</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sa</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">sock</span>
+            <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">last_err</span> <span class="o">=</span> <span class="n">e</span>
+                <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">last_err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">last_err</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not resolve </span><span class="si">{</span><span class="n">host</span><span class="si">!r}</span><span class="s2"> to an IPv4 address&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_SMTPSSLIPv4</span><span class="p">(</span><span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP_SSL</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Same as SMTP_SSL but TCP connect uses IPv4 only (see SMTP_FORCE_IPV4).&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_socket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">timeout</span><span class="p">):</span>  <span class="c1"># type: ignore[override]</span>
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">timeout</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Non-blocking socket (timeout=0) is not supported&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debuglevel</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_print_debug</span><span class="p">(</span><span class="s2">&quot;connect:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+        <span class="n">last_err</span><span class="p">:</span> <span class="ne">OSError</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">socket</span><span class="o">.</span><span class="n">getaddrinfo</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">):</span>
+            <span class="n">af</span><span class="p">,</span> <span class="n">socktype</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">_canon</span><span class="p">,</span> <span class="n">sa</span> <span class="o">=</span> <span class="n">res</span>
+            <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">af</span><span class="p">,</span> <span class="n">socktype</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span>
+            <span class="n">sock</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sock</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sa</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">wrap_socket</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">server_hostname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_host</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">last_err</span> <span class="o">=</span> <span class="n">e</span>
+                <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">last_err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">last_err</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not connect to </span><span class="si">{</span><span class="n">host</span><span class="si">!r}</span><span class="s2"> over IPv4&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_smtp_password</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gmail app passwords are 16 chars; strip accidental spaces from .env.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">SMTP_PASSWORD</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="send_email">
+<a class="viewcode-back" href="../../../modules.html#src.utils.email.send_email">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">send_email</span><span class="p">(</span><span class="n">to_email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subject</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">html_body</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send an HTML email via SMTP. Returns True on success.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">SMTP_USER</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">SMTP_PASSWORD</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;SMTP credentials not configured — skipping email to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">to_email</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">MIMEMultipart</span><span class="p">(</span><span class="s2">&quot;alternative&quot;</span><span class="p">)</span>
+    <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;From&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">MAIL_FROM_NAME</span><span class="si">}</span><span class="s2"> &lt;</span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">MAIL_FROM</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
+    <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;To&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_email</span>
+    <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;Subject&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">MIMEText</span><span class="p">(</span><span class="n">html_body</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">))</span>
+
+    <span class="n">host</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">SMTP_SERVER</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">SMTP_PORT</span>
+    <span class="n">timeout</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">SMTP_TIMEOUT</span>
+    <span class="n">pwd</span> <span class="o">=</span> <span class="n">_smtp_password</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">SMTP_USE_SSL</span><span class="p">:</span>
+            <span class="n">ssl_cls</span> <span class="o">=</span> <span class="n">_SMTPSSLIPv4</span> <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">SMTP_FORCE_IPV4</span> <span class="k">else</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP_SSL</span>
+            <span class="k">with</span> <span class="n">ssl_cls</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+                <span class="n">server</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">SMTP_USER</span><span class="p">,</span> <span class="n">pwd</span><span class="p">)</span>
+                <span class="n">server</span><span class="o">.</span><span class="n">sendmail</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">MAIL_FROM</span><span class="p">,</span> <span class="n">to_email</span><span class="p">,</span> <span class="n">msg</span><span class="o">.</span><span class="n">as_string</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">smtp_cls</span> <span class="o">=</span> <span class="n">_SMTPIPv4</span> <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">SMTP_FORCE_IPV4</span> <span class="k">else</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span>
+            <span class="k">with</span> <span class="n">smtp_cls</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+                <span class="n">server</span><span class="o">.</span><span class="n">ehlo</span><span class="p">()</span>
+                <span class="n">server</span><span class="o">.</span><span class="n">starttls</span><span class="p">()</span>
+                <span class="n">server</span><span class="o">.</span><span class="n">ehlo</span><span class="p">()</span>
+                <span class="n">server</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">SMTP_USER</span><span class="p">,</span> <span class="n">pwd</span><span class="p">)</span>
+                <span class="n">server</span><span class="o">.</span><span class="n">sendmail</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">MAIL_FROM</span><span class="p">,</span> <span class="n">to_email</span><span class="p">,</span> <span class="n">msg</span><span class="o">.</span><span class="n">as_string</span><span class="p">())</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Email sent to </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">to_email</span><span class="p">,</span> <span class="n">subject</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">TimeoutError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="s2">&quot;SMTP connection to </span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2"> timed out (</span><span class="si">%s</span><span class="s2">). &quot;</span>
+            <span class="s2">&quot;If you are on a restricted network, try SMTP_USE_SSL=true with SMTP_PORT=465, &quot;</span>
+            <span class="s2">&quot;or set SMTP_FORCE_IPV4=true, or allow outbound SMTP in your firewall/VPN.&quot;</span><span class="p">,</span>
+            <span class="n">host</span><span class="p">,</span>
+            <span class="n">port</span><span class="p">,</span>
+            <span class="n">e</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="s2">&quot;SMTP connection to </span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">. &quot;</span>
+            <span class="s2">&quot;Check firewall, VPN, and that the host/port are correct.&quot;</span><span class="p">,</span>
+            <span class="n">host</span><span class="p">,</span>
+            <span class="n">port</span><span class="p">,</span>
+            <span class="n">e</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Failed to send email to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">to_email</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

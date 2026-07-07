@@ -1,0 +1,590 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Core Modules &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Database Modules" href="database.html" />
+    <link rel="prev" title="Modules" href="../modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Core Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#src.config.Settings"><code class="docutils literal notranslate"><span class="pre">Settings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.ACCESS_TOKEN_EXPIRE_MINUTES"><code class="docutils literal notranslate"><span class="pre">Settings.ACCESS_TOKEN_EXPIRE_MINUTES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.ALGORITHM"><code class="docutils literal notranslate"><span class="pre">Settings.ALGORITHM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.APP_ENV"><code class="docutils literal notranslate"><span class="pre">Settings.APP_ENV</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.APP_NAME"><code class="docutils literal notranslate"><span class="pre">Settings.APP_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.DATABASE_URL"><code class="docutils literal notranslate"><span class="pre">Settings.DATABASE_URL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.DEBUG"><code class="docutils literal notranslate"><span class="pre">Settings.DEBUG</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.FRONTEND_URL"><code class="docutils literal notranslate"><span class="pre">Settings.FRONTEND_URL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.GOOGLE_CLIENT_ID"><code class="docutils literal notranslate"><span class="pre">Settings.GOOGLE_CLIENT_ID</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.GOOGLE_CLIENT_SECRET"><code class="docutils literal notranslate"><span class="pre">Settings.GOOGLE_CLIENT_SECRET</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE"><code class="docutils literal notranslate"><span class="pre">Settings.GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.GOOGLE_OAUTH_PROMPT_CONSENT"><code class="docutils literal notranslate"><span class="pre">Settings.GOOGLE_OAUTH_PROMPT_CONSENT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.GOOGLE_PLACES_API_KEY"><code class="docutils literal notranslate"><span class="pre">Settings.GOOGLE_PLACES_API_KEY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.GOOGLE_REDIRECT_URI"><code class="docutils literal notranslate"><span class="pre">Settings.GOOGLE_REDIRECT_URI</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.MAIL_FROM"><code class="docutils literal notranslate"><span class="pre">Settings.MAIL_FROM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.MAIL_FROM_NAME"><code class="docutils literal notranslate"><span class="pre">Settings.MAIL_FROM_NAME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.PHOTON_API_BASE"><code class="docutils literal notranslate"><span class="pre">Settings.PHOTON_API_BASE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.PLACES_PROVIDER"><code class="docutils literal notranslate"><span class="pre">Settings.PLACES_PROVIDER</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.PLATFORM_BOOTSTRAP_SECRET"><code class="docutils literal notranslate"><span class="pre">Settings.PLATFORM_BOOTSTRAP_SECRET</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.REFRESH_TOKEN_EXPIRE_DAYS"><code class="docutils literal notranslate"><span class="pre">Settings.REFRESH_TOKEN_EXPIRE_DAYS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.SECRET_KEY"><code class="docutils literal notranslate"><span class="pre">Settings.SECRET_KEY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.SMTP_FORCE_IPV4"><code class="docutils literal notranslate"><span class="pre">Settings.SMTP_FORCE_IPV4</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.SMTP_PASSWORD"><code class="docutils literal notranslate"><span class="pre">Settings.SMTP_PASSWORD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.SMTP_PORT"><code class="docutils literal notranslate"><span class="pre">Settings.SMTP_PORT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.SMTP_SERVER"><code class="docutils literal notranslate"><span class="pre">Settings.SMTP_SERVER</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.SMTP_TIMEOUT"><code class="docutils literal notranslate"><span class="pre">Settings.SMTP_TIMEOUT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.SMTP_USER"><code class="docutils literal notranslate"><span class="pre">Settings.SMTP_USER</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.SMTP_USE_SSL"><code class="docutils literal notranslate"><span class="pre">Settings.SMTP_USE_SSL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_CANCEL_URL"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_CANCEL_URL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_CHECKOUT_TRIAL_DAYS"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_CHECKOUT_TRIAL_DAYS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_PRICE_ANNUAL"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_PRICE_ANNUAL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_PRICE_BIANNUAL"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_PRICE_BIANNUAL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_PRICE_MONTHLY"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_PRICE_MONTHLY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_PUBLISHABLE_KEY"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_PUBLISHABLE_KEY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_SECRET_KEY"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_SECRET_KEY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_SUCCESS_URL"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_SUCCESS_URL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.STRIPE_WEBHOOK_SECRET"><code class="docutils literal notranslate"><span class="pre">Settings.STRIPE_WEBHOOK_SECRET</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.model_config"><code class="docutils literal notranslate"><span class="pre">Settings.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.config.Settings.strip_google_oauth_strings"><code class="docutils literal notranslate"><span class="pre">Settings.strip_google_oauth_strings()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.Base"><code class="docutils literal notranslate"><span class="pre">Base</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#src.database.Base.metadata"><code class="docutils literal notranslate"><span class="pre">Base.metadata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#src.database.Base.registry"><code class="docutils literal notranslate"><span class="pre">Base.registry</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_formula_visit_schema"><code class="docutils literal notranslate"><span class="pre">ensure_formula_visit_schema()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_preferred_stock_columns"><code class="docutils literal notranslate"><span class="pre">ensure_preferred_stock_columns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_product_color_columns"><code class="docutils literal notranslate"><span class="pre">ensure_product_color_columns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_reorder_ordered_at_column"><code class="docutils literal notranslate"><span class="pre">ensure_reorder_ordered_at_column()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_subscription_events_table"><code class="docutils literal notranslate"><span class="pre">ensure_subscription_events_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_tenant_is_platform_column"><code class="docutils literal notranslate"><span class="pre">ensure_tenant_is_platform_column()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_tenant_product_pack_columns"><code class="docutils literal notranslate"><span class="pre">ensure_tenant_product_pack_columns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_tenant_stripe_columns"><code class="docutils literal notranslate"><span class="pre">ensure_tenant_stripe_columns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_tenant_subscription_columns"><code class="docutils literal notranslate"><span class="pre">ensure_tenant_subscription_columns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.ensure_user_auth_columns"><code class="docutils literal notranslate"><span class="pre">ensure_user_auth_columns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.database.get_db"><code class="docutils literal notranslate"><span class="pre">get_db()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.security.create_access_token"><code class="docutils literal notranslate"><span class="pre">create_access_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.security.create_google_oauth_state_jwt"><code class="docutils literal notranslate"><span class="pre">create_google_oauth_state_jwt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.security.create_refresh_token"><code class="docutils literal notranslate"><span class="pre">create_refresh_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.security.decode_access_token"><code class="docutils literal notranslate"><span class="pre">decode_access_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.security.decode_google_oauth_state_jwt"><code class="docutils literal notranslate"><span class="pre">decode_google_oauth_state_jwt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.security.decode_refresh_token"><code class="docutils literal notranslate"><span class="pre">decode_refresh_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.security.hash_password"><code class="docutils literal notranslate"><span class="pre">hash_password()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.security.verify_password"><code class="docutils literal notranslate"><span class="pre">verify_password()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.create_google_authorization_url"><code class="docutils literal notranslate"><span class="pre">create_google_authorization_url()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.derive_display_name"><code class="docutils literal notranslate"><span class="pre">derive_display_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.exchange_code_for_token"><code class="docutils literal notranslate"><span class="pre">exchange_code_for_token()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.fetch_openid_userinfo"><code class="docutils literal notranslate"><span class="pre">fetch_openid_userinfo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.get_google_redirect_uri"><code class="docutils literal notranslate"><span class="pre">get_google_redirect_uri()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.map_oauth2_error"><code class="docutils literal notranslate"><span class="pre">map_oauth2_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.normalize_email"><code class="docutils literal notranslate"><span class="pre">normalize_email()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.oauth_session"><code class="docutils literal notranslate"><span class="pre">oauth_session()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#src.utils.google_oauth_flow.resolve_google_user"><code class="docutils literal notranslate"><span class="pre">resolve_google_user()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">Database Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models-services.html">Models and Services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-routes.html">API Routes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../modules.html">Modules</a></li>
+      <li class="breadcrumb-item active">Core Modules</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/core.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-src.config">
+<span id="core-modules"></span><h1>Core Modules<a class="headerlink" href="#module-src.config" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.config.Settings">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">src.config.</span></span><span class="sig-name descname"><span class="pre">Settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_case_sensitive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_nested_model_default_partial_update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_prefix_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EnvPrefixTarget</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DotenvType</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">WindowsPath('.')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_file_encoding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_ignore_empty</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_nested_delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_nested_max_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_parse_none_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env_parse_enums</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_prog_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_parse_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_settings_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CliSettingsSource</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_parse_none_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_hide_none_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_avoid_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_enforce_required</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_use_class_docs_for_groups</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_exit_on_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_flag_prefix_char</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_implicit_flags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'dual'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'toggle'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_ignore_unknown_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_kebab_case</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'all'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'no_enums'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_cli_shortcuts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_secrets_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PathType</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_build_sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">PydanticBaseSettingsSource</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">APP_NAME</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Chroma</span> <span class="pre">SaaS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">APP_ENV</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'development'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DEBUG</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DATABASE_URL</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sqlite:///./chroma.db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SECRET_KEY</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'change-me-to-a-long-random-secret-key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ALGORITHM</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'HS256'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ACCESS_TOKEN_EXPIRE_MINUTES</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">REFRESH_TOKEN_EXPIRE_DAYS</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PLATFORM_BOOTSTRAP_SECRET</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SMTP_SERVER</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'smtp.gmail.com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SMTP_PORT</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">587</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SMTP_USER</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SMTP_PASSWORD</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MAIL_FROM</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MAIL_FROM_NAME</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Chroma</span> <span class="pre">SaaS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SMTP_TIMEOUT</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SMTP_USE_SSL</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SMTP_FORCE_IPV4</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GOOGLE_CLIENT_ID</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GOOGLE_CLIENT_SECRET</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GOOGLE_REDIRECT_URI</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'http://localhost:3000/oauth/google/callback'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GOOGLE_OAUTH_PROMPT_CONSENT</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PLACES_PROVIDER</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'photon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PHOTON_API_BASE</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://photon.komoot.io/api'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GOOGLE_PLACES_API_KEY</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FRONTEND_URL</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://dosecolor.com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_SECRET_KEY</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_PUBLISHABLE_KEY</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_WEBHOOK_SECRET</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_PRICE_MONTHLY</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_PRICE_BIANNUAL</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_PRICE_ANNUAL</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_SUCCESS_URL</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_CANCEL_URL</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">STRIPE_CHECKOUT_TRIAL_DAYS</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/config.html#Settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.config.Settings" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSettings</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.ACCESS_TOKEN_EXPIRE_MINUTES">
+<span class="sig-name descname"><span class="pre">ACCESS_TOKEN_EXPIRE_MINUTES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#src.config.Settings.ACCESS_TOKEN_EXPIRE_MINUTES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.ALGORITHM">
+<span class="sig-name descname"><span class="pre">ALGORITHM</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.ALGORITHM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.APP_ENV">
+<span class="sig-name descname"><span class="pre">APP_ENV</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.APP_ENV" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.APP_NAME">
+<span class="sig-name descname"><span class="pre">APP_NAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.APP_NAME" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.DATABASE_URL">
+<span class="sig-name descname"><span class="pre">DATABASE_URL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.DATABASE_URL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.DEBUG">
+<span class="sig-name descname"><span class="pre">DEBUG</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#src.config.Settings.DEBUG" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.FRONTEND_URL">
+<span class="sig-name descname"><span class="pre">FRONTEND_URL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.FRONTEND_URL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.GOOGLE_CLIENT_ID">
+<span class="sig-name descname"><span class="pre">GOOGLE_CLIENT_ID</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.GOOGLE_CLIENT_ID" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.GOOGLE_CLIENT_SECRET">
+<span class="sig-name descname"><span class="pre">GOOGLE_CLIENT_SECRET</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.GOOGLE_CLIENT_SECRET" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE">
+<span class="sig-name descname"><span class="pre">GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#src.config.Settings.GOOGLE_OAUTH_ACCESS_TYPE_OFFLINE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.GOOGLE_OAUTH_PROMPT_CONSENT">
+<span class="sig-name descname"><span class="pre">GOOGLE_OAUTH_PROMPT_CONSENT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#src.config.Settings.GOOGLE_OAUTH_PROMPT_CONSENT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.GOOGLE_PLACES_API_KEY">
+<span class="sig-name descname"><span class="pre">GOOGLE_PLACES_API_KEY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.GOOGLE_PLACES_API_KEY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.GOOGLE_REDIRECT_URI">
+<span class="sig-name descname"><span class="pre">GOOGLE_REDIRECT_URI</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.GOOGLE_REDIRECT_URI" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.MAIL_FROM">
+<span class="sig-name descname"><span class="pre">MAIL_FROM</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.MAIL_FROM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.MAIL_FROM_NAME">
+<span class="sig-name descname"><span class="pre">MAIL_FROM_NAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.MAIL_FROM_NAME" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.PHOTON_API_BASE">
+<span class="sig-name descname"><span class="pre">PHOTON_API_BASE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.PHOTON_API_BASE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.PLACES_PROVIDER">
+<span class="sig-name descname"><span class="pre">PLACES_PROVIDER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.PLACES_PROVIDER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.PLATFORM_BOOTSTRAP_SECRET">
+<span class="sig-name descname"><span class="pre">PLATFORM_BOOTSTRAP_SECRET</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.PLATFORM_BOOTSTRAP_SECRET" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.REFRESH_TOKEN_EXPIRE_DAYS">
+<span class="sig-name descname"><span class="pre">REFRESH_TOKEN_EXPIRE_DAYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#src.config.Settings.REFRESH_TOKEN_EXPIRE_DAYS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.SECRET_KEY">
+<span class="sig-name descname"><span class="pre">SECRET_KEY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.SECRET_KEY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.SMTP_FORCE_IPV4">
+<span class="sig-name descname"><span class="pre">SMTP_FORCE_IPV4</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#src.config.Settings.SMTP_FORCE_IPV4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.SMTP_PASSWORD">
+<span class="sig-name descname"><span class="pre">SMTP_PASSWORD</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.SMTP_PASSWORD" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.SMTP_PORT">
+<span class="sig-name descname"><span class="pre">SMTP_PORT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#src.config.Settings.SMTP_PORT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.SMTP_SERVER">
+<span class="sig-name descname"><span class="pre">SMTP_SERVER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.SMTP_SERVER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.SMTP_TIMEOUT">
+<span class="sig-name descname"><span class="pre">SMTP_TIMEOUT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#src.config.Settings.SMTP_TIMEOUT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.SMTP_USER">
+<span class="sig-name descname"><span class="pre">SMTP_USER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.SMTP_USER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.SMTP_USE_SSL">
+<span class="sig-name descname"><span class="pre">SMTP_USE_SSL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#src.config.Settings.SMTP_USE_SSL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_CANCEL_URL">
+<span class="sig-name descname"><span class="pre">STRIPE_CANCEL_URL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_CANCEL_URL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_CHECKOUT_TRIAL_DAYS">
+<span class="sig-name descname"><span class="pre">STRIPE_CHECKOUT_TRIAL_DAYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_CHECKOUT_TRIAL_DAYS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_PRICE_ANNUAL">
+<span class="sig-name descname"><span class="pre">STRIPE_PRICE_ANNUAL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_PRICE_ANNUAL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_PRICE_BIANNUAL">
+<span class="sig-name descname"><span class="pre">STRIPE_PRICE_BIANNUAL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_PRICE_BIANNUAL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_PRICE_MONTHLY">
+<span class="sig-name descname"><span class="pre">STRIPE_PRICE_MONTHLY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_PRICE_MONTHLY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_PUBLISHABLE_KEY">
+<span class="sig-name descname"><span class="pre">STRIPE_PUBLISHABLE_KEY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_PUBLISHABLE_KEY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_SECRET_KEY">
+<span class="sig-name descname"><span class="pre">STRIPE_SECRET_KEY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_SECRET_KEY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_SUCCESS_URL">
+<span class="sig-name descname"><span class="pre">STRIPE_SUCCESS_URL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_SUCCESS_URL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.STRIPE_WEBHOOK_SECRET">
+<span class="sig-name descname"><span class="pre">STRIPE_WEBHOOK_SECRET</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#src.config.Settings.STRIPE_WEBHOOK_SECRET" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.config.Settings.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True,</span> <span class="pre">'case_sensitive':</span> <span class="pre">False,</span> <span class="pre">'cli_avoid_json':</span> <span class="pre">False,</span> <span class="pre">'cli_enforce_required':</span> <span class="pre">False,</span> <span class="pre">'cli_exit_on_error':</span> <span class="pre">True,</span> <span class="pre">'cli_flag_prefix_char':</span> <span class="pre">'-',</span> <span class="pre">'cli_hide_none_type':</span> <span class="pre">False,</span> <span class="pre">'cli_ignore_unknown_args':</span> <span class="pre">False,</span> <span class="pre">'cli_implicit_flags':</span> <span class="pre">False,</span> <span class="pre">'cli_kebab_case':</span> <span class="pre">False,</span> <span class="pre">'cli_parse_args':</span> <span class="pre">None,</span> <span class="pre">'cli_parse_none_str':</span> <span class="pre">None,</span> <span class="pre">'cli_prefix':</span> <span class="pre">'',</span> <span class="pre">'cli_prog_name':</span> <span class="pre">None,</span> <span class="pre">'cli_shortcuts':</span> <span class="pre">None,</span> <span class="pre">'cli_use_class_docs_for_groups':</span> <span class="pre">False,</span> <span class="pre">'enable_decoding':</span> <span class="pre">True,</span> <span class="pre">'env_file':</span> <span class="pre">'.env',</span> <span class="pre">'env_file_encoding':</span> <span class="pre">'utf-8',</span> <span class="pre">'env_ignore_empty':</span> <span class="pre">False,</span> <span class="pre">'env_nested_delimiter':</span> <span class="pre">None,</span> <span class="pre">'env_nested_max_split':</span> <span class="pre">None,</span> <span class="pre">'env_parse_enums':</span> <span class="pre">None,</span> <span class="pre">'env_parse_none_str':</span> <span class="pre">None,</span> <span class="pre">'env_prefix':</span> <span class="pre">'',</span> <span class="pre">'env_prefix_target':</span> <span class="pre">'variable',</span> <span class="pre">'extra':</span> <span class="pre">'forbid',</span> <span class="pre">'json_file':</span> <span class="pre">None,</span> <span class="pre">'json_file_encoding':</span> <span class="pre">None,</span> <span class="pre">'nested_model_default_partial_update':</span> <span class="pre">False,</span> <span class="pre">'protected_namespaces':</span> <span class="pre">('model_validate',</span> <span class="pre">'model_dump',</span> <span class="pre">'settings_customise_sources'),</span> <span class="pre">'secrets_dir':</span> <span class="pre">None,</span> <span class="pre">'toml_file':</span> <span class="pre">None,</span> <span class="pre">'validate_default':</span> <span class="pre">True,</span> <span class="pre">'yaml_config_section':</span> <span class="pre">None,</span> <span class="pre">'yaml_file':</span> <span class="pre">None,</span> <span class="pre">'yaml_file_encoding':</span> <span class="pre">None}</span></span><a class="headerlink" href="#src.config.Settings.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.config.Settings.strip_google_oauth_strings">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">strip_google_oauth_strings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">object</span></span></span><a class="reference internal" href="../_modules/src/config.html#Settings.strip_google_oauth_strings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.config.Settings.strip_google_oauth_strings" title="Link to this definition"></a></dt>
+<dd><p>Trailing/leading spaces in .env break redirect_uri matching.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-src.database">
+<dt class="sig sig-object py" id="src.database.Base">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">Base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/database.html#Base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.Base" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">DeclarativeBase</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.database.Base.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">MetaData</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">MetaData()</span></span><a class="headerlink" href="#src.database.Base.metadata" title="Link to this definition"></a></dt>
+<dd><p>Refers to the <code class="xref py py-class docutils literal notranslate"><span class="pre">_schema.MetaData</span></code> collection that will be used
+for new <code class="xref py py-class docutils literal notranslate"><span class="pre">_schema.Table</span></code> objects.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><span class="xref std std-ref">orm_declarative_metadata</span></p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.database.Base.registry">
+<span class="sig-name descname"><span class="pre">registry</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">registry</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;sqlalchemy.orm.decl_api.registry</span> <span class="pre">object&gt;</span></span><a class="headerlink" href="#src.database.Base.registry" title="Link to this definition"></a></dt>
+<dd><p>Refers to the <code class="xref py py-class docutils literal notranslate"><span class="pre">_orm.registry</span></code> in use where new
+<code class="xref py py-class docutils literal notranslate"><span class="pre">_orm.Mapper</span></code> objects will be associated.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_formula_visit_schema">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_formula_visit_schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_formula_visit_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_formula_visit_schema" title="Link to this definition"></a></dt>
+<dd><p>Create formula_visits and link columns on formulas.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_preferred_stock_columns">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_preferred_stock_columns</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_preferred_stock_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_preferred_stock_columns" title="Link to this definition"></a></dt>
+<dd><p>Add preferred_stock_qty to tenant_products and inventory_items.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_product_color_columns">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_product_color_columns</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_product_color_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_product_color_columns" title="Link to this definition"></a></dt>
+<dd><p>Add level, color_family, hex_code columns and migrate tone_family to enum.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_reorder_ordered_at_column">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_reorder_ordered_at_column</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_reorder_ordered_at_column"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_reorder_ordered_at_column" title="Link to this definition"></a></dt>
+<dd><p>Add reorder_ordered_at to inventory_items.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_subscription_events_table">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_subscription_events_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_subscription_events_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_subscription_events_table" title="Link to this definition"></a></dt>
+<dd><p>Create subscription_events audit table if missing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_tenant_is_platform_column">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_tenant_is_platform_column</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_tenant_is_platform_column"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_tenant_is_platform_column" title="Link to this definition"></a></dt>
+<dd><p>Additive migration for existing DBs (create_all does not alter columns).
+Safe to run on every startup.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_tenant_product_pack_columns">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_tenant_product_pack_columns</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_tenant_product_pack_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_tenant_product_pack_columns" title="Link to this definition"></a></dt>
+<dd><p>Add salon pack size columns (value + G | ML | OZ unit).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_tenant_stripe_columns">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_tenant_stripe_columns</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_tenant_stripe_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_tenant_stripe_columns" title="Link to this definition"></a></dt>
+<dd><p>Add Stripe billing columns to tenants if missing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_tenant_subscription_columns">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_tenant_subscription_columns</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_tenant_subscription_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_tenant_subscription_columns" title="Link to this definition"></a></dt>
+<dd><p>Add subscription billing columns to tenants if missing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.ensure_user_auth_columns">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">ensure_user_auth_columns</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/database.html#ensure_user_auth_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.ensure_user_auth_columns" title="Link to this definition"></a></dt>
+<dd><p>Add auth-related columns to users table if they don’t exist.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.database.get_db">
+<span class="sig-prename descclassname"><span class="pre">src.database.</span></span><span class="sig-name descname"><span class="pre">get_db</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/database.html#get_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.database.get_db" title="Link to this definition"></a></dt>
+<dd><p>FastAPI dependency that yields a database session.</p>
+</dd></dl>
+
+<dl class="py function" id="module-src.utils.security">
+<dt class="sig sig-object py" id="src.utils.security.create_access_token">
+<span class="sig-prename descclassname"><span class="pre">src.utils.security.</span></span><span class="sig-name descname"><span class="pre">create_access_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expires_delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timedelta</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/utils/security.html#create_access_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.security.create_access_token" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.security.create_google_oauth_state_jwt">
+<span class="sig-prename descclassname"><span class="pre">src.utils.security.</span></span><span class="sig-name descname"><span class="pre">create_google_oauth_state_jwt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/utils/security.html#create_google_oauth_state_jwt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.security.create_google_oauth_state_jwt" title="Link to this definition"></a></dt>
+<dd><p>Signed state token for Google OAuth authorize redirect (CSRF protection).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.security.create_refresh_token">
+<span class="sig-prename descclassname"><span class="pre">src.utils.security.</span></span><span class="sig-name descname"><span class="pre">create_refresh_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/utils/security.html#create_refresh_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.security.create_refresh_token" title="Link to this definition"></a></dt>
+<dd><p>Create a refresh token with longer expiration.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.security.decode_access_token">
+<span class="sig-prename descclassname"><span class="pre">src.utils.security.</span></span><span class="sig-name descname"><span class="pre">decode_access_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/utils/security.html#decode_access_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.security.decode_access_token" title="Link to this definition"></a></dt>
+<dd><p>Return the payload dict or None if the token is invalid/expired.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.security.decode_google_oauth_state_jwt">
+<span class="sig-prename descclassname"><span class="pre">src.utils.security.</span></span><span class="sig-name descname"><span class="pre">decode_google_oauth_state_jwt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/utils/security.html#decode_google_oauth_state_jwt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.security.decode_google_oauth_state_jwt" title="Link to this definition"></a></dt>
+<dd><p>Verify Google OAuth state JWT; require typ === google_oauth.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.security.decode_refresh_token">
+<span class="sig-prename descclassname"><span class="pre">src.utils.security.</span></span><span class="sig-name descname"><span class="pre">decode_refresh_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/utils/security.html#decode_refresh_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.security.decode_refresh_token" title="Link to this definition"></a></dt>
+<dd><p>Return the payload dict or None if the refresh token is invalid/expired.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.security.hash_password">
+<span class="sig-prename descclassname"><span class="pre">src.utils.security.</span></span><span class="sig-name descname"><span class="pre">hash_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/utils/security.html#hash_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.security.hash_password" title="Link to this definition"></a></dt>
+<dd><p>Hash a password using bcrypt.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.security.verify_password">
+<span class="sig-prename descclassname"><span class="pre">src.utils.security.</span></span><span class="sig-name descname"><span class="pre">verify_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hashed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/src/utils/security.html#verify_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.security.verify_password" title="Link to this definition"></a></dt>
+<dd><p>Verify a password against a bcrypt hash.</p>
+</dd></dl>
+
+<p id="module-src.utils.google_oauth_flow">Google OAuth 2.0 authorization code flow helpers (Authlib + OpenID userinfo).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.create_google_authorization_url">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">create_google_authorization_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_jwt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#create_google_authorization_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.create_google_authorization_url" title="Link to this definition"></a></dt>
+<dd><p>Build Google authorize URL; state is our signed JWT for CSRF.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.derive_display_name">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">derive_display_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userinfo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">email</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#derive_display_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.derive_display_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.exchange_code_for_token">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">exchange_code_for_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#exchange_code_for_token"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.exchange_code_for_token" title="Link to this definition"></a></dt>
+<dd><p>Exchange authorization code for tokens.
+Authlib uses HTTP Basic auth for client credentials by default (not body + Basic).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.fetch_openid_userinfo">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">fetch_openid_userinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#fetch_openid_userinfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.fetch_openid_userinfo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.get_google_redirect_uri">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">get_google_redirect_uri</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#get_google_redirect_uri"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.get_google_redirect_uri" title="Link to this definition"></a></dt>
+<dd><p>Single source of truth for Google OAuth redirect_uri.
+Must be identical in: authorize URL (/o/oauth2/v2/auth), token POST (/token),
+and Google Cloud Console → Authorized redirect URIs.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.map_oauth2_error">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">map_oauth2_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">OAuth2Error</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">OAuthError</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#map_oauth2_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.map_oauth2_error" title="Link to this definition"></a></dt>
+<dd><p>Return (user_message, log_detail). Covers RFC6749 OAuth2Error and Authlib OAuth2Session OAuthError.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.normalize_email">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">normalize_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">email</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#normalize_email"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.normalize_email" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.oauth_session">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">oauth_session</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OAuth2Session</span></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#oauth_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.oauth_session" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.utils.google_oauth_flow.resolve_google_user">
+<span class="sig-prename descclassname"><span class="pre">src.utils.google_oauth_flow.</span></span><span class="sig-name descname"><span class="pre">resolve_google_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">google_sub</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">email_raw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="models-services.html#src.models.user.User" title="src.models.user.User"><span class="pre">User</span></a></span></span><a class="reference internal" href="../_modules/src/utils/google_oauth_flow.html#resolve_google_user"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.utils.google_oauth_flow.resolve_google_user" title="Link to this definition"></a></dt>
+<dd><p>Resolve an existing user by Google subject or email (link first-time Google to a local row).</p>
+<p>Does not create new users; unknown Google identities get a clear error.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../modules.html" class="btn btn-neutral float-left" title="Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="database.html" class="btn btn-neutral float-right" title="Database Modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

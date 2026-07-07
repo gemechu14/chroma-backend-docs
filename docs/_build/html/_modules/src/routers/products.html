@@ -1,0 +1,531 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.routers.products &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.routers.products</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.routers.products</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">APIRouter</span><span class="p">,</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">Query</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_db</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.product</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToneFamily</span><span class="p">,</span> <span class="n">ColorFamily</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.schemas.product</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BrandCreate</span><span class="p">,</span>
+    <span class="n">BrandRead</span><span class="p">,</span>
+    <span class="n">BrandUpdate</span><span class="p">,</span>
+    <span class="n">ProductLineCreate</span><span class="p">,</span>
+    <span class="n">ProductLineRead</span><span class="p">,</span>
+    <span class="n">ProductLineUpdate</span><span class="p">,</span>
+    <span class="n">ProductCreate</span><span class="p">,</span>
+    <span class="n">ProductRead</span><span class="p">,</span>
+    <span class="n">ProductUpdate</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.schemas.tenant_product</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BulkAddTenantProductsCreate</span><span class="p">,</span>
+    <span class="n">BulkAddTenantProductsResponse</span><span class="p">,</span>
+    <span class="n">TenantProductCreate</span><span class="p">,</span>
+    <span class="n">TenantProductRead</span><span class="p">,</span>
+    <span class="n">TenantProductUpdate</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.crud</span><span class="w"> </span><span class="kn">import</span> <span class="n">product</span> <span class="k">as</span> <span class="n">prod_crud</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.crud</span><span class="w"> </span><span class="kn">import</span> <span class="n">tenant_product</span> <span class="k">as</span> <span class="n">tp_crud</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.deps</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_current_user</span><span class="p">,</span>
+    <span class="n">require_super_admin</span><span class="p">,</span>
+    <span class="n">require_salon_staff_admin_or_manager</span><span class="p">,</span>
+    <span class="n">is_platform_super_admin</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.pagination</span><span class="w"> </span><span class="kn">import</span> <span class="n">PaginatedResponse</span><span class="p">,</span> <span class="n">calculate_skip</span><span class="p">,</span> <span class="n">calculate_total_pages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.user</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/products&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Products&quot;</span><span class="p">])</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Brands</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="list_brands">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.list_brands">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/brands&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">BrandRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_brands</span><span class="p">(</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">get_brands</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">count_brands</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_brand">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.create_brand">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/brands&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">BrandRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_brand</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">BrandCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">return</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">create_brand</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="update_brand">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.update_brand">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/brands/</span><span class="si">{brand_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">BrandRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_brand</span><span class="p">(</span>
+    <span class="n">brand_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">BrandUpdate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">brand</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">update_brand</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">brand_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">brand</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Brand not found&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">brand</span></div>
+
+
+
+<div class="viewcode-block" id="delete_brand">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.delete_brand">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/brands/</span><span class="si">{brand_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_brand</span><span class="p">(</span>
+    <span class="n">brand_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">delete_brand</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">brand_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Brand not found&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Product Lines</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="list_product_lines">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.list_product_lines">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/lines&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">ProductLineRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_product_lines</span><span class="p">(</span>
+    <span class="n">brand_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">get_product_lines_by_brand</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">brand_id</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">count_product_lines_by_brand</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">brand_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_product_line">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.create_product_line">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/lines&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">ProductLineRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_product_line</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">ProductLineCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">return</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">create_product_line</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="update_product_line">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.update_product_line">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/lines/</span><span class="si">{line_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">ProductLineRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_product_line</span><span class="p">(</span>
+    <span class="n">line_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">ProductLineUpdate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">update_product_line</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">line_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Product line not found&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">line</span></div>
+
+
+
+<div class="viewcode-block" id="delete_product_line">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.delete_product_line">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/lines/</span><span class="si">{line_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_product_line</span><span class="p">(</span>
+    <span class="n">line_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">delete_product_line</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">line_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Product line not found&quot;</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Products (global catalog)</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="list_products">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.list_products">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">ProductRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_products</span><span class="p">(</span>
+    <span class="n">product_line_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tone_family</span><span class="p">:</span> <span class="n">ToneFamily</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+    <span class="n">color_family</span><span class="p">:</span> <span class="n">ColorFamily</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="n">filters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">tone_family</span><span class="o">=</span><span class="n">tone_family</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="n">color_family</span><span class="o">=</span><span class="n">color_family</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">product_line_id</span><span class="p">:</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">get_products_by_line</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">product_line_id</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span> <span class="o">**</span><span class="n">filters</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">count_products_by_line</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">product_line_id</span><span class="p">,</span> <span class="o">**</span><span class="n">filters</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">get_products</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span> <span class="o">**</span><span class="n">filters</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">count_products</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="o">**</span><span class="n">filters</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_product">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.create_product">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">ProductRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_product</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">ProductCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">return</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">create_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Tenant Products (salon-specific catalog) — must be before /{product_id}</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_tenant_catalog_id</span><span class="p">(</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Query parameter tenant_id is required for platform administrators&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tenant_id</span>
+    <span class="k">if</span> <span class="n">tenant_id</span> <span class="ow">and</span> <span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Access denied&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span>
+
+
+<div class="viewcode-block" id="list_tenant_products">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.list_tenant_products">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/tenant-catalog&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">TenantProductRead</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_tenant_products</span><span class="p">(</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Salon tenant id (required when logged in as SUPER_ADMIN).&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">enabled_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;Location id to scope catalog to products tracked at that location. &quot;</span>
+            <span class="s2">&quot;Defaults to current user&#39;s default location for salon users.&quot;</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_current_user</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">effective</span> <span class="o">=</span> <span class="n">_resolve_tenant_catalog_id</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">)</span>
+    <span class="n">effective_location_id</span> <span class="o">=</span> <span class="n">location_id</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="n">effective_location_id</span> <span class="o">=</span> <span class="n">location_id</span> <span class="ow">or</span> <span class="n">current_user</span><span class="o">.</span><span class="n">default_location_id</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">effective_location_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+                <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="p">(</span>
+                    <span class="s2">&quot;location_id is required because your account has no default_location_id. &quot;</span>
+                    <span class="s2">&quot;Provide ?location_id=... or set a default location.&quot;</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">calculate_skip</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">page_size</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">enabled_only</span><span class="p">:</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">get_enabled_tenant_products</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">effective</span><span class="p">,</span> <span class="n">location_id</span><span class="o">=</span><span class="n">effective_location_id</span>
+        <span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">count_enabled_tenant_products</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">effective</span><span class="p">,</span> <span class="n">location_id</span><span class="o">=</span><span class="n">effective_location_id</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">get_tenant_products</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">effective</span><span class="p">,</span> <span class="n">location_id</span><span class="o">=</span><span class="n">effective_location_id</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">page_size</span>
+        <span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">count_tenant_products</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">effective</span><span class="p">,</span> <span class="n">location_id</span><span class="o">=</span><span class="n">effective_location_id</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">PaginatedResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">items</span><span class="p">,</span>
+        <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span>
+        <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">,</span>
+        <span class="n">total_pages</span><span class="o">=</span><span class="n">calculate_total_pages</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">page_size</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="add_product_to_catalog">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.add_product_to_catalog">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">&quot;/tenant-catalog&quot;</span><span class="p">,</span>
+    <span class="n">response_model</span><span class="o">=</span><span class="n">TenantProductRead</span><span class="p">,</span>
+    <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_product_to_catalog</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">TenantProductCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Use a salon admin account to manage tenant catalogs&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span>
+    <span class="k">return</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">create_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="bulk_add_products_to_catalog">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.bulk_add_products_to_catalog">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">&quot;/tenant-catalog/bulk&quot;</span><span class="p">,</span>
+    <span class="n">response_model</span><span class="o">=</span><span class="n">BulkAddTenantProductsResponse</span><span class="p">,</span>
+    <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bulk_add_products_to_catalog</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">BulkAddTenantProductsCreate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Use a salon admin account to manage tenant catalogs&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span>
+    <span class="k">return</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">bulk_create_tenant_products</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="update_tenant_product">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.update_tenant_product">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/tenant-catalog/</span><span class="si">{tp_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantProductRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_tenant_product</span><span class="p">(</span>
+    <span class="n">tp_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">TenantProductUpdate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Use a salon admin account to manage tenant catalogs&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">tp</span> <span class="o">=</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">get_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tp_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tp</span> <span class="ow">or</span> <span class="n">tp</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant product not found&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">update_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tp_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="remove_tenant_product">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.remove_tenant_product">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/tenant-catalog/</span><span class="si">{tp_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_tenant_product</span><span class="p">(</span>
+    <span class="n">tp_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">current_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_salon_staff_admin_or_manager</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_platform_super_admin</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Use a salon admin account to manage tenant catalogs&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">tp</span> <span class="o">=</span> <span class="n">tp_crud</span><span class="o">.</span><span class="n">get_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tp_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tp</span> <span class="ow">or</span> <span class="n">tp</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">!=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Tenant product not found&quot;</span>
+        <span class="p">)</span>
+    <span class="n">tp_crud</span><span class="o">.</span><span class="n">delete_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tp_id</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Single product (global catalog) — after static paths like /tenant-catalog</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="update_product">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.update_product">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{product_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">ProductRead</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_product</span><span class="p">(</span>
+    <span class="n">product_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">ProductUpdate</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="n">product</span> <span class="o">=</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">update_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">product_id</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">product</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Product not found&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">product</span></div>
+
+
+
+<div class="viewcode-block" id="delete_product">
+<a class="viewcode-back" href="../../../modules.html#src.routers.products.delete_product">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{product_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_product</span><span class="p">(</span>
+    <span class="n">product_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
+    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">require_super_admin</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">prod_crud</span><span class="o">.</span><span class="n">delete_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">product_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Product not found&quot;</span><span class="p">)</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

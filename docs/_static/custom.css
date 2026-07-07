@@ -1,0 +1,4 @@
+/* Keep sidebar untouched; expand document body width */
+.wy-nav-content {
+    max-width: none;
+}

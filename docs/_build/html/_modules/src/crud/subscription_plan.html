@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.crud.subscription_plan &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.crud.subscription_plan</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.crud.subscription_plan</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;CRUD and seed for subscription plans and platform billing config.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.subscription_plan</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlatformBillingConfig</span><span class="p">,</span> <span class="n">SubscriptionPlan</span>
+
+<span class="n">DEFAULT_INCLUDED_FEATURES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;Unlimited formulas&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Inventory in grams / ml&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Multi-location support&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Team roles &amp; permissions&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Customer color history&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Cost-per-service tracking&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Auto-renewal&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Priority email support&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">DEFAULT_PLANS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;interval&quot;</span><span class="p">:</span> <span class="s2">&quot;monthly&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Monthly&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Flexible billing — cancel anytime.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;amount_cents&quot;</span><span class="p">:</span> <span class="mi">2200</span><span class="p">,</span>
+        <span class="s2">&quot;period_label&quot;</span><span class="p">:</span> <span class="s2">&quot;per month&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;savings_label&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Unlimited formulas&quot;</span><span class="p">,</span> <span class="s2">&quot;Cancel anytime&quot;</span><span class="p">,</span> <span class="s2">&quot;Auto-renewal&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;highlighted&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;sort_order&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;interval&quot;</span><span class="p">:</span> <span class="s2">&quot;biannual&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Bi-annual&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Best for salons that prefer twice-yearly billing.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;amount_cents&quot;</span><span class="p">:</span> <span class="mi">11880</span><span class="p">,</span>
+        <span class="s2">&quot;period_label&quot;</span><span class="p">:</span> <span class="s2">&quot;every 6 months&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;savings_label&quot;</span><span class="p">:</span> <span class="s2">&quot;Save 10%&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Unlimited formulas&quot;</span><span class="p">,</span> <span class="s2">&quot;10</span><span class="si">% d</span><span class="s2">iscount&quot;</span><span class="p">,</span> <span class="s2">&quot;Auto-renewal&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;highlighted&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;sort_order&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;interval&quot;</span><span class="p">:</span> <span class="s2">&quot;annual&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Annual&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Lowest effective rate for committed teams.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;amount_cents&quot;</span><span class="p">:</span> <span class="mi">21120</span><span class="p">,</span>
+        <span class="s2">&quot;period_label&quot;</span><span class="p">:</span> <span class="s2">&quot;per year&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;savings_label&quot;</span><span class="p">:</span> <span class="s2">&quot;Save 20%&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Unlimited formulas&quot;</span><span class="p">,</span> <span class="s2">&quot;20</span><span class="si">% d</span><span class="s2">iscount&quot;</span><span class="p">,</span> <span class="s2">&quot;Auto-renewal&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;highlighted&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">&quot;sort_order&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">]</span>
+
+<span class="n">STRIPE_ENV_BY_INTERVAL</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;monthly&quot;</span><span class="p">:</span> <span class="s2">&quot;STRIPE_PRICE_MONTHLY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;biannual&quot;</span><span class="p">:</span> <span class="s2">&quot;STRIPE_PRICE_BIANNUAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;annual&quot;</span><span class="p">:</span> <span class="s2">&quot;STRIPE_PRICE_ANNUAL&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_features</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="p">[]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_dump_features</span><span class="p">(</span><span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stripe_price_from_env</span><span class="p">(</span><span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">attr</span> <span class="o">=</span> <span class="n">STRIPE_ENV_BY_INTERVAL</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">attr</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="ow">or</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="get_billing_config">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.get_billing_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_billing_config</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlatformBillingConfig</span><span class="p">:</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">PlatformBillingConfig</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">PlatformBillingConfig</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">row</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">PlatformBillingConfig</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span>
+        <span class="n">trial_days</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">included_features_json</span><span class="o">=</span><span class="n">_dump_features</span><span class="p">(</span><span class="n">DEFAULT_INCLUDED_FEATURES</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">row</span></div>
+
+
+
+<div class="viewcode-block" id="update_billing_config">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.update_billing_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_billing_config</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">trial_days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">included_features</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlatformBillingConfig</span><span class="p">:</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">get_billing_config</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">trial_days</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">trial_days</span> <span class="o">=</span> <span class="n">trial_days</span>
+    <span class="k">if</span> <span class="n">included_features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">included_features_json</span> <span class="o">=</span> <span class="n">_dump_features</span><span class="p">(</span><span class="n">included_features</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">row</span></div>
+
+
+
+<div class="viewcode-block" id="get_trial_days">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.get_trial_days">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_trial_days</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">get_billing_config</span><span class="p">(</span><span class="n">db</span><span class="p">)</span><span class="o">.</span><span class="n">trial_days</span></div>
+
+
+
+<div class="viewcode-block" id="get_included_features">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.get_included_features">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_included_features</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">_parse_features</span><span class="p">(</span><span class="n">get_billing_config</span><span class="p">(</span><span class="n">db</span><span class="p">)</span><span class="o">.</span><span class="n">included_features_json</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="list_active_plans">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.list_active_plans">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_active_plans</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SubscriptionPlan</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">active</span><span class="o">.</span><span class="n">is_</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">sort_order</span><span class="o">.</span><span class="n">asc</span><span class="p">(),</span> <span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">interval</span><span class="o">.</span><span class="n">asc</span><span class="p">())</span>
+        <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="list_all_plans">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.list_all_plans">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_all_plans</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SubscriptionPlan</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">sort_order</span><span class="o">.</span><span class="n">asc</span><span class="p">(),</span> <span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">interval</span><span class="o">.</span><span class="n">asc</span><span class="p">())</span>
+        <span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_plan_by_interval">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.get_plan_by_interval">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_plan_by_interval</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubscriptionPlan</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">interval</span> <span class="o">==</span> <span class="n">interval</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_active_plan_by_interval">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.get_active_plan_by_interval">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_active_plan_by_interval</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubscriptionPlan</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">interval</span> <span class="o">==</span> <span class="n">interval</span><span class="p">,</span> <span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">active</span><span class="o">.</span><span class="n">is_</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_plan_by_stripe_price_id">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.get_plan_by_stripe_price_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_plan_by_stripe_price_id</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">price_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubscriptionPlan</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">price_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">stripe_price_id</span> <span class="o">==</span> <span class="n">price_id</span><span class="p">,</span> <span class="n">SubscriptionPlan</span><span class="o">.</span><span class="n">active</span><span class="o">.</span><span class="n">is_</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="update_plan">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.update_plan">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_plan</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">amount_cents</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">period_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">savings_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">stripe_price_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">highlighted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">sort_order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">active</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubscriptionPlan</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">get_plan_by_interval</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">plan</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span>
+    <span class="k">if</span> <span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+    <span class="k">if</span> <span class="n">amount_cents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">amount_cents</span> <span class="o">=</span> <span class="n">amount_cents</span>
+    <span class="k">if</span> <span class="n">period_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">period_label</span> <span class="o">=</span> <span class="n">period_label</span>
+    <span class="k">if</span> <span class="n">savings_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">savings_label</span> <span class="o">=</span> <span class="n">savings_label</span> <span class="ow">or</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">features</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">features_json</span> <span class="o">=</span> <span class="n">_dump_features</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stripe_price_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">stripe_price_id</span> <span class="o">=</span> <span class="n">stripe_price_id</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">highlighted</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">highlighted</span> <span class="o">=</span> <span class="n">highlighted</span>
+    <span class="k">if</span> <span class="n">sort_order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">sort_order</span> <span class="o">=</span> <span class="n">sort_order</span>
+    <span class="k">if</span> <span class="n">active</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plan</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="n">active</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">plan</span></div>
+
+
+
+<div class="viewcode-block" id="plan_features">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.plan_features">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plan_features</span><span class="p">(</span><span class="n">plan</span><span class="p">:</span> <span class="n">SubscriptionPlan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">_parse_features</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">features_json</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plan_price_usd">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.plan_price_usd">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plan_price_usd</span><span class="p">(</span><span class="n">plan</span><span class="p">:</span> <span class="n">SubscriptionPlan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">amount_cents</span> <span class="o">/</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plan_price_display">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.plan_price_display">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plan_price_display</span><span class="p">(</span><span class="n">plan</span><span class="p">:</span> <span class="n">SubscriptionPlan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">usd</span> <span class="o">=</span> <span class="n">plan_price_usd</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;monthly&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">usd</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">usd</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="plan_monthly_equivalent">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.plan_monthly_equivalent">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plan_monthly_equivalent</span><span class="p">(</span><span class="n">plan</span><span class="p">:</span> <span class="n">SubscriptionPlan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">usd</span> <span class="o">=</span> <span class="n">plan_price_usd</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;monthly&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">usd</span>
+    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;biannual&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">usd</span> <span class="o">/</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;annual&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">usd</span> <span class="o">/</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="plan_to_public">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.plan_to_public">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plan_to_public</span><span class="p">(</span><span class="n">plan</span><span class="p">:</span> <span class="n">SubscriptionPlan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;interval&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">interval</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="s2">&quot;price_usd&quot;</span><span class="p">:</span> <span class="n">plan_price_usd</span><span class="p">(</span><span class="n">plan</span><span class="p">),</span>
+        <span class="s2">&quot;price_display&quot;</span><span class="p">:</span> <span class="n">plan_price_display</span><span class="p">(</span><span class="n">plan</span><span class="p">),</span>
+        <span class="s2">&quot;period_label&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">period_label</span><span class="p">,</span>
+        <span class="s2">&quot;savings_label&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">savings_label</span><span class="p">,</span>
+        <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="n">plan_features</span><span class="p">(</span><span class="n">plan</span><span class="p">),</span>
+        <span class="s2">&quot;highlighted&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">highlighted</span><span class="p">,</span>
+        <span class="s2">&quot;monthly_equivalent_usd&quot;</span><span class="p">:</span> <span class="n">plan_monthly_equivalent</span><span class="p">(</span><span class="n">plan</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="plan_to_admin">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.plan_to_admin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plan_to_admin</span><span class="p">(</span><span class="n">plan</span><span class="p">:</span> <span class="n">SubscriptionPlan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="s2">&quot;interval&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">interval</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="s2">&quot;amount_cents&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">amount_cents</span><span class="p">,</span>
+        <span class="s2">&quot;currency&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">currency</span><span class="p">,</span>
+        <span class="s2">&quot;period_label&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">period_label</span><span class="p">,</span>
+        <span class="s2">&quot;savings_label&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">savings_label</span><span class="p">,</span>
+        <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="n">plan_features</span><span class="p">(</span><span class="n">plan</span><span class="p">),</span>
+        <span class="s2">&quot;stripe_price_id&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">stripe_price_id</span><span class="p">,</span>
+        <span class="s2">&quot;highlighted&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">highlighted</span><span class="p">,</span>
+        <span class="s2">&quot;sort_order&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">sort_order</span><span class="p">,</span>
+        <span class="s2">&quot;active&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">active</span><span class="p">,</span>
+        <span class="s2">&quot;updated_at&quot;</span><span class="p">:</span> <span class="n">plan</span><span class="o">.</span><span class="n">updated_at</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="build_public_catalog">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.build_public_catalog">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_public_catalog</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">get_billing_config</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+    <span class="n">plans</span> <span class="o">=</span> <span class="p">[</span><span class="n">plan_to_public</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">list_active_plans</span><span class="p">(</span><span class="n">db</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;trial_days&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">trial_days</span><span class="p">,</span>
+        <span class="s2">&quot;included_features&quot;</span><span class="p">:</span> <span class="n">_parse_features</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">included_features_json</span><span class="p">),</span>
+        <span class="s2">&quot;plans&quot;</span><span class="p">:</span> <span class="n">plans</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="interval_price_usd">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.interval_price_usd">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interval_price_usd</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">get_active_plan_by_interval</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plan</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">plan_price_usd</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.subscription</span><span class="w"> </span><span class="kn">import</span> <span class="n">interval_price_usd_fallback</span>
+
+    <span class="k">return</span> <span class="n">interval_price_usd_fallback</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="price_label_for_interval">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.price_label_for_interval">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">price_label_for_interval</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">get_active_plan_by_interval</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">plan</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">usd</span> <span class="o">=</span> <span class="n">plan_price_usd</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;monthly&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">usd</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">/month&quot;</span>
+    <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;biannual&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">usd</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> every 6 months&quot;</span>
+    <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;annual&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">usd</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/year&quot;</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="stripe_price_id_for_interval">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.stripe_price_id_for_interval">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stripe_price_id_for_interval</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">get_active_plan_by_interval</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plan</span> <span class="ow">and</span> <span class="n">plan</span><span class="o">.</span><span class="n">stripe_price_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">plan</span><span class="o">.</span><span class="n">stripe_price_id</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_stripe_price_from_env</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="interval_from_stripe_price_id">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.interval_from_stripe_price_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interval_from_stripe_price_id</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">price_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">price_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">get_plan_by_stripe_price_id</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">price_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plan</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">plan</span><span class="o">.</span><span class="n">interval</span>
+    <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="n">STRIPE_ENV_BY_INTERVAL</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_stripe_price_from_env</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span> <span class="o">==</span> <span class="n">price_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">interval</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="seed_default_plans">
+<a class="viewcode-back" href="../../../modules.html#src.crud.subscription_plan.seed_default_plans">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">seed_default_plans</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">get_billing_config</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">DEFAULT_PLANS</span><span class="p">:</span>
+        <span class="n">existing</span> <span class="o">=</span> <span class="n">get_plan_by_interval</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;interval&quot;</span><span class="p">])</span>
+        <span class="n">env_price</span> <span class="o">=</span> <span class="n">_stripe_price_from_env</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;interval&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">env_price</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">existing</span><span class="o">.</span><span class="n">stripe_price_id</span><span class="p">:</span>
+                <span class="n">existing</span><span class="o">.</span><span class="n">stripe_price_id</span> <span class="o">=</span> <span class="n">env_price</span>
+            <span class="k">continue</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">SubscriptionPlan</span><span class="p">(</span>
+                <span class="n">interval</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;interval&quot;</span><span class="p">],</span>
+                <span class="n">title</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">],</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">],</span>
+                <span class="n">amount_cents</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;amount_cents&quot;</span><span class="p">],</span>
+                <span class="n">period_label</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;period_label&quot;</span><span class="p">],</span>
+                <span class="n">savings_label</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;savings_label&quot;</span><span class="p">],</span>
+                <span class="n">features_json</span><span class="o">=</span><span class="n">_dump_features</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]),</span>
+                <span class="n">stripe_price_id</span><span class="o">=</span><span class="n">env_price</span><span class="p">,</span>
+                <span class="n">highlighted</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;highlighted&quot;</span><span class="p">],</span>
+                <span class="n">sort_order</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;sort_order&quot;</span><span class="p">],</span>
+                <span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

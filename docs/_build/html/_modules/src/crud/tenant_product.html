@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.crud.tenant_product &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.crud.tenant_product</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.crud.tenant_product</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">status</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">func</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.inventory</span><span class="w"> </span><span class="kn">import</span> <span class="n">InventoryItem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.product</span><span class="w"> </span><span class="kn">import</span> <span class="n">Product</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.models.tenant_product</span><span class="w"> </span><span class="kn">import</span> <span class="n">TenantProduct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.schemas.tenant_product</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BulkAddTenantProductsCreate</span><span class="p">,</span>
+    <span class="n">BulkAddTenantProductsResponse</span><span class="p">,</span>
+    <span class="n">TenantProductCreate</span><span class="p">,</span>
+    <span class="n">TenantProductUpdate</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_tenant_product">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.get_tenant_product">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant_product_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TenantProduct</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">TenantProduct</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">TenantProduct</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">tenant_product_id</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_tenant_products">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.get_tenant_products">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_tenant_products</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TenantProduct</span><span class="p">]:</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">TenantProduct</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">TenantProduct</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">==</span> <span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">location_id</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">InventoryItem</span><span class="p">,</span> <span class="n">InventoryItem</span><span class="o">.</span><span class="n">tenant_product_id</span> <span class="o">==</span> <span class="n">TenantProduct</span><span class="o">.</span><span class="n">id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">InventoryItem</span><span class="o">.</span><span class="n">location_id</span> <span class="o">==</span> <span class="n">location_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">query</span><span class="o">.</span><span class="n">offset</span><span class="p">(</span><span class="n">skip</span><span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_enabled_tenant_products">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.get_enabled_tenant_products">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_enabled_tenant_products</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TenantProduct</span><span class="p">]:</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">TenantProduct</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">TenantProduct</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">==</span> <span class="n">tenant_id</span><span class="p">,</span> <span class="n">TenantProduct</span><span class="o">.</span><span class="n">is_enabled</span> <span class="o">==</span> <span class="kc">True</span>  <span class="c1"># noqa: E712</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">location_id</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">InventoryItem</span><span class="p">,</span> <span class="n">InventoryItem</span><span class="o">.</span><span class="n">tenant_product_id</span> <span class="o">==</span> <span class="n">TenantProduct</span><span class="o">.</span><span class="n">id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">InventoryItem</span><span class="o">.</span><span class="n">location_id</span> <span class="o">==</span> <span class="n">location_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_tenant_product_by_global_product</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">product_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TenantProduct</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">TenantProduct</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">TenantProduct</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">==</span> <span class="n">tenant_id</span><span class="p">,</span>
+            <span class="n">TenantProduct</span><span class="o">.</span><span class="n">product_id</span> <span class="o">==</span> <span class="n">product_id</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_inventory_for_tenant_product</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
+    <span class="n">tp</span><span class="p">:</span> <span class="n">TenantProduct</span><span class="p">,</span>
+    <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">on_hand_qty</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">reorder_level_qty</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">src.crud.inventory</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_inventory_item_by_location_product</span>
+
+    <span class="k">if</span> <span class="n">get_inventory_item_by_location_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">location_id</span><span class="p">,</span> <span class="n">tp</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Inventory item already exists for this location and product&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+        <span class="n">InventoryItem</span><span class="p">(</span>
+            <span class="n">tenant_id</span><span class="o">=</span><span class="n">tp</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">,</span>
+            <span class="n">location_id</span><span class="o">=</span><span class="n">location_id</span><span class="p">,</span>
+            <span class="n">tenant_product_id</span><span class="o">=</span><span class="n">tp</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="n">on_hand_qty</span><span class="o">=</span><span class="n">on_hand_qty</span> <span class="k">if</span> <span class="n">on_hand_qty</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">reorder_level_qty</span><span class="o">=</span><span class="n">reorder_level_qty</span><span class="p">,</span>
+            <span class="n">preferred_stock_qty</span><span class="o">=</span><span class="n">tp</span><span class="o">.</span><span class="n">preferred_stock_qty</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_tenant_product">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.create_tenant_product">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">TenantProductCreate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TenantProduct</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">_get_tenant_product_by_global_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">product_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Product is already in this salon catalog&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+    <span class="n">location_id</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;location_id&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">on_hand_qty</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;on_hand_qty&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">reorder_level_qty</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;reorder_level_qty&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">tp</span> <span class="o">=</span> <span class="n">TenantProduct</span><span class="p">(</span><span class="o">**</span><span class="n">payload</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">location_id</span><span class="p">:</span>
+        <span class="n">_add_inventory_for_tenant_product</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">location_id</span><span class="p">,</span> <span class="n">on_hand_qty</span><span class="p">,</span> <span class="n">reorder_level_qty</span>
+        <span class="p">)</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tp</span></div>
+
+
+
+<div class="viewcode-block" id="bulk_create_tenant_products">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.bulk_create_tenant_products">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bulk_create_tenant_products</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">BulkAddTenantProductsCreate</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BulkAddTenantProductsResponse</span><span class="p">:</span>
+    <span class="n">product_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">product_id</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">products</span><span class="p">]</span>
+    <span class="n">found_ids</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Product</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Product</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">product_ids</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">pid</span> <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">product_ids</span> <span class="k">if</span> <span class="n">pid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">found_ids</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Global product(s) not found: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;…&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="n">shared</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;products&quot;</span><span class="p">,</span> <span class="s2">&quot;tenant_id&quot;</span><span class="p">})</span>
+    <span class="n">location_id</span> <span class="o">=</span> <span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;location_id&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">on_hand_qty</span> <span class="o">=</span> <span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;on_hand_qty&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">reorder_level_qty</span> <span class="o">=</span> <span class="n">shared</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;reorder_level_qty&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">created</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TenantProduct</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_get_tenant_product_by_global_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">product_id</span><span class="p">):</span>
+            <span class="k">continue</span>
+
+        <span class="n">row</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">shared</span><span class="p">,</span> <span class="s2">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">tenant_id</span><span class="p">,</span> <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="n">entry</span><span class="o">.</span><span class="n">product_id</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">custom_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">[</span><span class="s2">&quot;custom_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">custom_name</span>
+
+        <span class="n">tp</span> <span class="o">=</span> <span class="n">TenantProduct</span><span class="p">(</span><span class="o">**</span><span class="n">row</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">location_id</span><span class="p">:</span>
+            <span class="n">_add_inventory_for_tenant_product</span><span class="p">(</span>
+                <span class="n">db</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">location_id</span><span class="p">,</span> <span class="n">on_hand_qty</span><span class="p">,</span> <span class="n">reorder_level_qty</span>
+            <span class="p">)</span>
+        <span class="n">created</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">created</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+            <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;All selected products are already in this salon catalog&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="n">created</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">BulkAddTenantProductsResponse</span><span class="p">(</span>
+        <span class="n">items</span><span class="o">=</span><span class="n">created</span><span class="p">,</span>
+        <span class="n">created_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">created</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="update_tenant_product">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.update_tenant_product">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_tenant_product</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant_product_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">TenantProductUpdate</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TenantProduct</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">tp</span> <span class="o">=</span> <span class="n">get_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_product_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tp</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tp</span></div>
+
+
+
+<div class="viewcode-block" id="delete_tenant_product">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.delete_tenant_product">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant_product_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="n">tp</span> <span class="o">=</span> <span class="n">get_tenant_product</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tenant_product_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tp</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="count_tenant_products">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.count_tenant_products">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">count_tenant_products</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">TenantProduct</span><span class="o">.</span><span class="n">id</span><span class="p">))</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">TenantProduct</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">==</span> <span class="n">tenant_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">location_id</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">InventoryItem</span><span class="p">,</span> <span class="n">InventoryItem</span><span class="o">.</span><span class="n">tenant_product_id</span> <span class="o">==</span> <span class="n">TenantProduct</span><span class="o">.</span><span class="n">id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">InventoryItem</span><span class="o">.</span><span class="n">location_id</span> <span class="o">==</span> <span class="n">location_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">query</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="count_enabled_tenant_products">
+<a class="viewcode-back" href="../../../modules.html#src.crud.tenant_product.count_enabled_tenant_products">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">count_enabled_tenant_products</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">TenantProduct</span><span class="o">.</span><span class="n">id</span><span class="p">))</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">TenantProduct</span><span class="o">.</span><span class="n">tenant_id</span> <span class="o">==</span> <span class="n">tenant_id</span><span class="p">,</span>
+        <span class="n">TenantProduct</span><span class="o">.</span><span class="n">is_enabled</span> <span class="o">==</span> <span class="kc">True</span><span class="p">,</span>  <span class="c1"># noqa: E712</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">location_id</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">InventoryItem</span><span class="p">,</span> <span class="n">InventoryItem</span><span class="o">.</span><span class="n">tenant_product_id</span> <span class="o">==</span> <span class="n">TenantProduct</span><span class="o">.</span><span class="n">id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">InventoryItem</span><span class="o">.</span><span class="n">location_id</span> <span class="o">==</span> <span class="n">location_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">query</span><span class="o">.</span><span class="n">scalar</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">0</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

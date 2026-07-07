@@ -1,0 +1,204 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory API &mdash; Dosecolor Backend 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a19e95da" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Formulas API" href="formulas-api.html" />
+    <link rel="prev" title="Products API" href="products-api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Dosecolor Backend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api-reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="api-reference.html#overview">Overview</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="api-reference.html#api-groups">API groups</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="auth-api.html">Auth API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="users-api.html">Users API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tenants-api.html">Tenants API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="customers-api.html">Customers API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="products-api.html">Products API</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Inventory API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#purpose">Purpose</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#endpoint-list">Endpoint list</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#auth-requirements">Auth requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#key-schemas">Key schemas</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#common-errors">Common errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-request-response">Example request/response</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="formulas-api.html">Formulas API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="platform-api.html">Platform API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plans-api.html">Plans API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stripe-api.html">Stripe Billing API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="places-api.html">Places API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operations.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Dosecolor Backend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="api-reference.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Inventory API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/inventory-api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="inventory-api">
+<h1>Inventory API<a class="headerlink" href="#inventory-api" title="Link to this heading"></a></h1>
+<section id="purpose">
+<h2>Purpose<a class="headerlink" href="#purpose" title="Link to this heading"></a></h2>
+<p>Tracks on-hand stock and inventory transactions in grams/mL, including low-stock views, reorder workflow, and manual adjustments.</p>
+</section>
+<section id="endpoint-list">
+<h2>Endpoint list<a class="headerlink" href="#endpoint-list" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/v1/inventory/items</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/v1/inventory/items/low-stock</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/v1/inventory/items/reorder-list</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/v1/inventory/items</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/v1/inventory/items/{item_id}</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PATCH</span> <span class="pre">/api/v1/inventory/items/{item_id}</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/v1/inventory/items/{item_id}/mark-ordered</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/api/v1/inventory/items/{item_id}/mark-ordered</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/v1/inventory/transactions</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/api/v1/inventory/transactions/{item_id}</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/api/v1/inventory/transactions</span></code></p></li>
+</ul>
+</section>
+<section id="auth-requirements">
+<h2>Auth requirements<a class="headerlink" href="#auth-requirements" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>All routes require Bearer token auth.</p></li>
+<li><p>Tenant scoping is enforced for both stock records and transactions.</p></li>
+</ul>
+</section>
+<section id="key-schemas">
+<h2>Key schemas<a class="headerlink" href="#key-schemas" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Request: <code class="docutils literal notranslate"><span class="pre">InventoryItemCreate</span></code>, <code class="docutils literal notranslate"><span class="pre">InventoryItemUpdate</span></code>, <code class="docutils literal notranslate"><span class="pre">InventoryTxnCreate</span></code></p></li>
+<li><p>Response: <code class="docutils literal notranslate"><span class="pre">InventoryItemRead</span></code>, <code class="docutils literal notranslate"><span class="pre">InventoryTxnRead</span></code>, <code class="docutils literal notranslate"><span class="pre">PaginatedResponse[InventoryTxnRead]</span></code></p></li>
+</ul>
+</section>
+<section id="common-errors">
+<h2>Common errors<a class="headerlink" href="#common-errors" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code>: invalid transaction direction, quantity, or unit mismatch</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code>: token missing/invalid</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code>: insufficient role for stock mutation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code>: inventory item not found in tenant/location scope</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">422</span> <span class="pre">Unprocessable</span> <span class="pre">Entity</span></code>: invalid schema fields</p></li>
+</ul>
+</section>
+<section id="example-request-response">
+<h2>Example request/response<a class="headerlink" href="#example-request-response" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://localhost:8000/api/v1/inventory/transactions&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer &lt;access_token&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;inventory_item_id&quot;:42,&quot;txn_type&quot;:&quot;adjustment&quot;,&quot;qty_delta&quot;:15.0,&quot;note&quot;:&quot;Cycle count correction&quot;}&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">991</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;inventory_item_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;txn_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;adjustment&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;qty_delta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">15.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;note&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cycle count correction&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="products-api.html" class="btn btn-neutral float-left" title="Products API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="formulas-api.html" class="btn btn-neutral float-right" title="Formulas API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Dosecolor.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
