@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/config.html" />
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=8d563738"></script>
@@ -76,27 +77,45 @@
            <div itemprop="articleBody">
              
   <h1>Source code for src.config</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">field_validator</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">field_validator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic_settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSettings</span><span class="p">,</span> <span class="n">SettingsConfigDict</span>
 
 
 <div class="viewcode-block" id="Settings">
-<a class="viewcode-back" href="../../modules.html#src.config.Settings">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.config.Settings">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Runtime configuration for the Dosecolor API.</span>
+
+<span class="sd">    Values are loaded from environment variables and an optional ``.env`` file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">model_config</span> <span class="o">=</span> <span class="n">SettingsConfigDict</span><span class="p">(</span><span class="n">env_file</span><span class="o">=</span><span class="s2">&quot;.env&quot;</span><span class="p">,</span> <span class="n">env_file_encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
-    <span class="n">APP_NAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Chroma SaaS&quot;</span>
-    <span class="n">APP_ENV</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;development&quot;</span>
-    <span class="n">DEBUG</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">APP_NAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;Dosecolor&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Application display name.&quot;</span><span class="p">)</span>
+    <span class="n">APP_ENV</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;development&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Runtime profile: development or production.&quot;</span><span class="p">)</span>
+    <span class="n">DEBUG</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Enable verbose logging and debug behavior.&quot;</span><span class="p">)</span>
 
-    <span class="n">DATABASE_URL</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sqlite:///./chroma.db&quot;</span>
+    <span class="n">DATABASE_URL</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;sqlite:///./dose.db&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;SQLAlchemy database URL (SQLite for dev, PostgreSQL for production).&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">API_PUBLIC_URL</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;http://localhost:8000&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Public base URL of this API (used in docs links and callbacks).&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
 
-    <span class="n">SECRET_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;change-me-to-a-long-random-secret-key&quot;</span>
-    <span class="n">ALGORITHM</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;HS256&quot;</span>
-    <span class="n">ACCESS_TOKEN_EXPIRE_MINUTES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span>
-    <span class="n">REFRESH_TOKEN_EXPIRE_DAYS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">SECRET_KEY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;change-me-to-a-long-random-secret-key&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;JWT signing secret. Must be a long random value in production.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ALGORITHM</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;HS256&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;JWT signing algorithm.&quot;</span><span class="p">)</span>
+    <span class="n">ACCESS_TOKEN_EXPIRE_MINUTES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Access token lifetime in minutes.&quot;</span><span class="p">)</span>
+    <span class="n">REFRESH_TOKEN_EXPIRE_DAYS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Refresh token lifetime in days.&quot;</span><span class="p">)</span>
 
-    <span class="n">PLATFORM_BOOTSTRAP_SECRET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">PLATFORM_BOOTSTRAP_SECRET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;One-time secret for creating the platform super-admin account.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># SMTP / Email</span>
     <span class="n">SMTP_SERVER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;smtp.gmail.com&quot;</span>
@@ -104,7 +123,7 @@
     <span class="n">SMTP_USER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="n">SMTP_PASSWORD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="n">MAIL_FROM</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-    <span class="n">MAIL_FROM_NAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Chroma SaaS&quot;</span>
+    <span class="n">MAIL_FROM_NAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;Dosecolor&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Sender display name for outbound email.&quot;</span><span class="p">)</span>
     <span class="c1"># Seconds; default avoids hanging forever on blocked networks</span>
     <span class="n">SMTP_TIMEOUT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span>
     <span class="c1"># True = implicit TLS on port 465 (often works when 587 is blocked)</span>
@@ -144,7 +163,7 @@
     <span class="c1"># Optional trial on checkout when tenant has no remaining local trial (0 = none)</span>
     <span class="n">STRIPE_CHECKOUT_TRIAL_DAYS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 <div class="viewcode-block" id="Settings.strip_google_oauth_strings">
-<a class="viewcode-back" href="../../modules.html#src.config.Settings.strip_google_oauth_strings">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.config.Settings.strip_google_oauth_strings">[docs]</a>
     <span class="nd">@field_validator</span><span class="p">(</span>
         <span class="s2">&quot;GOOGLE_CLIENT_ID&quot;</span><span class="p">,</span>
         <span class="s2">&quot;GOOGLE_CLIENT_SECRET&quot;</span><span class="p">,</span>

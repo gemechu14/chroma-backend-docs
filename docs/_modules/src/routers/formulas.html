@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/routers/formulas.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -101,7 +102,7 @@
 
 
 <div class="viewcode-block" id="list_formulas">
-<a class="viewcode-back" href="../../../modules.html#src.routers.formulas.list_formulas">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.formulas.list_formulas">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">FormulaRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_formulas</span><span class="p">(</span>
     <span class="n">customer_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -143,7 +144,7 @@
 
 
 <div class="viewcode-block" id="create_formula_visit">
-<a class="viewcode-back" href="../../../modules.html#src.routers.formulas.create_formula_visit">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.formulas.create_formula_visit">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/visit&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">FormulaVisitRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_formula_visit</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">FormulaVisitCreate</span><span class="p">,</span>
@@ -173,7 +174,7 @@
 
 
 <div class="viewcode-block" id="get_formula_visit">
-<a class="viewcode-back" href="../../../modules.html#src.routers.formulas.get_formula_visit">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.formulas.get_formula_visit">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/visits/</span><span class="si">{visit_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">FormulaVisitRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_formula_visit</span><span class="p">(</span>
     <span class="n">visit_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -189,7 +190,7 @@
 
 
 <div class="viewcode-block" id="create_formula">
-<a class="viewcode-back" href="../../../modules.html#src.routers.formulas.create_formula">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.formulas.create_formula">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">FormulaRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_formula</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">FormulaCreate</span><span class="p">,</span>
@@ -220,7 +221,7 @@
 
 
 <div class="viewcode-block" id="get_formula">
-<a class="viewcode-back" href="../../../modules.html#src.routers.formulas.get_formula">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.formulas.get_formula">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{formula_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">FormulaRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_formula</span><span class="p">(</span>
     <span class="n">formula_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -235,7 +236,7 @@
 
 
 <div class="viewcode-block" id="update_formula">
-<a class="viewcode-back" href="../../../modules.html#src.routers.formulas.update_formula">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.formulas.update_formula">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{formula_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">FormulaRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_formula</span><span class="p">(</span>
     <span class="n">formula_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -251,7 +252,7 @@
 
 
 <div class="viewcode-block" id="delete_formula">
-<a class="viewcode-back" href="../../../modules.html#src.routers.formulas.delete_formula">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.formulas.delete_formula">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{formula_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">delete_formula</span><span class="p">(</span>
     <span class="n">formula_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>

@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/utils/pack_units.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -86,7 +87,7 @@
 
 
 <div class="viewcode-block" id="TrackingUnit">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.TrackingUnit">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.TrackingUnit">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TrackingUnit</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Canonical unit for on-hand qty, formulas, and cost per unit.&quot;&quot;&quot;</span>
 
@@ -96,7 +97,7 @@
 
 
 <div class="viewcode-block" id="PackSizeUnit">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.PackSizeUnit">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.PackSizeUnit">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PackSizeUnit</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Label on bottle / tube (may differ from tracking).&quot;&quot;&quot;</span>
 
@@ -107,7 +108,7 @@
 
 
 <div class="viewcode-block" id="normalize_unit">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.normalize_unit">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.normalize_unit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_unit</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -116,7 +117,7 @@
 
 
 <div class="viewcode-block" id="validate_tracking_unit">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.validate_tracking_unit">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.validate_tracking_unit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate_tracking_unit</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">normalized</span> <span class="o">=</span> <span class="n">normalize_unit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">or</span> <span class="n">TrackingUnit</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">value</span>
     <span class="k">try</span><span class="p">:</span>
@@ -131,7 +132,7 @@
 
 
 <div class="viewcode-block" id="validate_pack_size_unit">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.validate_pack_size_unit">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.validate_pack_size_unit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate_pack_size_unit</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -147,7 +148,7 @@
 
 
 <div class="viewcode-block" id="default_tracking_for_pack">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.default_tracking_for_pack">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.default_tracking_for_pack">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">default_tracking_for_pack</span><span class="p">(</span><span class="n">pack_unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Infer tracking unit when pack is labeled in g, ml, or oz.&quot;&quot;&quot;</span>
     <span class="n">pu</span> <span class="o">=</span> <span class="n">validate_pack_size_unit</span><span class="p">(</span><span class="n">pack_unit</span><span class="p">)</span> <span class="k">if</span> <span class="n">pack_unit</span> <span class="k">else</span> <span class="kc">None</span>
@@ -162,7 +163,7 @@
 
 
 <div class="viewcode-block" id="to_canonical_qty">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.to_canonical_qty">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.to_canonical_qty">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">to_canonical_qty</span><span class="p">(</span>
     <span class="n">qty</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
@@ -191,7 +192,7 @@
 
 
 <div class="viewcode-block" id="canonical_pack_size">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.canonical_pack_size">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.canonical_pack_size">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">canonical_pack_size</span><span class="p">(</span>
     <span class="n">pack_size_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">pack_size_unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
@@ -209,7 +210,7 @@
 
 
 <div class="viewcode-block" id="unit_cost_per_tracking">
-<a class="viewcode-back" href="../../../modules.html#src.utils.pack_units.unit_cost_per_tracking">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.utils.pack_units.unit_cost_per_tracking">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">unit_cost_per_tracking</span><span class="p">(</span>
     <span class="n">bottle_cost</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">pack_size_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>

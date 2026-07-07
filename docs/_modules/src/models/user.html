@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/models/user.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -86,8 +87,9 @@
 
 
 <div class="viewcode-block" id="User">
-<a class="viewcode-back" href="../../../modules.html#src.models.user.User">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.models.user.User">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Salon staff account scoped to a tenant with role-based permissions.&quot;&quot;&quot;</span>
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;users&quot;</span>
 
     <span class="nb">id</span><span class="p">:</span> <span class="n">Mapped</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_column</span><span class="p">(</span>

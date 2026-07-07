@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/routers/inventory.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -104,7 +105,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="list_inventory">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.list_inventory">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.list_inventory">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="n">InventoryItemRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_inventory</span><span class="p">(</span>
     <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">resolve_location_id</span><span class="p">),</span>
@@ -116,7 +117,7 @@
 
 
 <div class="viewcode-block" id="low_stock_alerts">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.low_stock_alerts">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.low_stock_alerts">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/low-stock&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="n">InventoryItemRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">low_stock_alerts</span><span class="p">(</span>
     <span class="n">location_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">resolve_location_id</span><span class="p">),</span>
@@ -128,7 +129,7 @@
 
 
 <div class="viewcode-block" id="reorder_list">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.reorder_list">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.reorder_list">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/reorder-list&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="n">InventoryItemRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">reorder_list</span><span class="p">(</span>
     <span class="n">ordered</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span>
@@ -146,7 +147,7 @@
 
 
 <div class="viewcode-block" id="create_inventory_item">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.create_inventory_item">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.create_inventory_item">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
     <span class="s2">&quot;/items&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span>
 <span class="p">)</span>
@@ -169,7 +170,7 @@
 
 
 <div class="viewcode-block" id="get_inventory_item">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.get_inventory_item">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.get_inventory_item">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_inventory_item</span><span class="p">(</span>
     <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -186,7 +187,7 @@
 
 
 <div class="viewcode-block" id="update_inventory_item">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.update_inventory_item">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.update_inventory_item">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_inventory_item</span><span class="p">(</span>
     <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -204,7 +205,7 @@
 
 
 <div class="viewcode-block" id="mark_item_ordered">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.mark_item_ordered">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.mark_item_ordered">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">/mark-ordered&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">mark_item_ordered</span><span class="p">(</span>
     <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -223,7 +224,7 @@
 
 
 <div class="viewcode-block" id="unmark_item_ordered">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.unmark_item_ordered">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.unmark_item_ordered">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">/mark-ordered&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryItemRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">unmark_item_ordered</span><span class="p">(</span>
     <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -246,7 +247,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="list_transactions">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.list_transactions">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.list_transactions">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/transactions&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">InventoryTxnRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_transactions</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
@@ -268,7 +269,7 @@
 
 
 <div class="viewcode-block" id="list_item_transactions">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.list_item_transactions">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.list_item_transactions">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/transactions/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">InventoryTxnRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_item_transactions</span><span class="p">(</span>
     <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -296,7 +297,7 @@
 
 
 <div class="viewcode-block" id="create_transaction">
-<a class="viewcode-back" href="../../../modules.html#src.routers.inventory.create_transaction">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.inventory.create_transaction">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
     <span class="s2">&quot;/transactions&quot;</span><span class="p">,</span>
     <span class="n">response_model</span><span class="o">=</span><span class="n">InventoryTxnRead</span><span class="p">,</span>

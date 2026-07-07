@@ -1,22 +1,42 @@
 Core Modules
 ============
 
-.. automodule:: src.config
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Configuration
+-------------
 
-.. automodule:: src.database
+.. autoclass:: src.config.Settings
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :exclude-members: model_config, model_computed_fields, model_extra, model_fields, model_fields_set, settings_customise_sources
+
+Database session
+----------------
+
+.. autofunction:: src.database.get_db
+
+Startup schema helpers
+----------------------
+
+These functions run on application startup to apply additive schema changes for existing databases.
+
+.. autofunction:: src.database.ensure_tenant_is_platform_column
+.. autofunction:: src.database.ensure_user_auth_columns
+.. autofunction:: src.database.ensure_product_color_columns
+.. autofunction:: src.database.ensure_tenant_product_pack_columns
+.. autofunction:: src.database.ensure_preferred_stock_columns
+.. autofunction:: src.database.ensure_reorder_ordered_at_column
+.. autofunction:: src.database.ensure_formula_visit_schema
+.. autofunction:: src.database.ensure_tenant_subscription_columns
+.. autofunction:: src.database.ensure_tenant_stripe_columns
+.. autofunction:: src.database.ensure_subscription_events_table
+
+Security utilities
+------------------
 
 .. automodule:: src.utils.security
    :members:
-   :undoc-members:
-   :show-inheritance:
+
+Google OAuth helpers
+--------------------
 
 .. automodule:: src.utils.google_oauth_flow
    :members:
-   :undoc-members:
-   :show-inheritance:

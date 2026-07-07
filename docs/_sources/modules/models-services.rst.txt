@@ -4,80 +4,70 @@ Models and Services
 Models
 ------
 
-.. automodule:: src.models.user
-   :members:
-   :undoc-members:
-   :show-inheritance:
+SQLAlchemy ORM entities. Each class maps to a database table.
 
-.. automodule:: src.models.tenant
+.. autoclass:: src.models.user.User
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-.. automodule:: src.models.customer
+.. autoclass:: src.models.tenant.Tenant
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-.. automodule:: src.models.product
+.. autoclass:: src.models.tenant.Location
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-.. automodule:: src.models.tenant_product
+.. autoclass:: src.models.customer.Customer
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-.. automodule:: src.models.inventory
+.. autoclass:: src.models.product.Brand
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-.. automodule:: src.models.formula
+.. autoclass:: src.models.product.ProductLine
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-.. automodule:: src.models.subscription_plan
+.. autoclass:: src.models.product.Product
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-.. automodule:: src.models.subscription_event
+.. autoclass:: src.models.tenant_product.TenantProduct
    :members:
-   :undoc-members:
-   :show-inheritance:
+
+.. autoclass:: src.models.inventory.InventoryItem
+   :members:
+
+.. autoclass:: src.models.inventory.InventoryTxn
+   :members:
+
+.. autoclass:: src.models.formula.Formula
+   :members:
+
+.. autoclass:: src.models.formula.FormulaVisit
+   :members:
+
+.. autoclass:: src.models.formula.FormulaItem
+   :members:
+
+.. autoclass:: src.models.subscription_plan.SubscriptionPlan
+   :members:
+
+.. autoclass:: src.models.subscription_event.SubscriptionEvent
+   :members:
 
 Services
 --------
 
 .. automodule:: src.services.stripe_billing
    :members:
-   :undoc-members:
-   :show-inheritance:
 
 .. automodule:: src.services.subscription_events
    :members:
-   :undoc-members:
-   :show-inheritance:
 
 .. automodule:: src.utils.email
    :members:
-   :undoc-members:
-   :show-inheritance:
 
 .. automodule:: src.utils.pagination
    :members:
-   :undoc-members:
-   :show-inheritance:
 
 .. automodule:: src.utils.pack_units
    :members:
-   :undoc-members:
-   :show-inheritance:
 
 .. automodule:: src.utils.subscription
    :members:
-   :undoc-members:
-   :show-inheritance:

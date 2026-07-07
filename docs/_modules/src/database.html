@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/database.html" />
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=8d563738"></script>
@@ -76,7 +77,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for src.database</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">text</span>
+<span></span><span class="sd">&quot;&quot;&quot;Database engine, session factory, and additive startup migrations.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">text</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.exc</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperationalError</span><span class="p">,</span> <span class="n">ProgrammingError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeclarativeBase</span><span class="p">,</span> <span class="n">sessionmaker</span>
 
@@ -92,15 +95,12 @@
 <span class="n">SessionLocal</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">autocommit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">autoflush</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Base">
-<a class="viewcode-back" href="../../modules.html#src.database.Base">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Base</span><span class="p">(</span><span class="n">DeclarativeBase</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
+    <span class="k">pass</span>
 
 
 <div class="viewcode-block" id="get_db">
-<a class="viewcode-back" href="../../modules.html#src.database.get_db">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.get_db">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_db</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;FastAPI dependency that yields a database session.&quot;&quot;&quot;</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">SessionLocal</span><span class="p">()</span>
@@ -112,7 +112,7 @@
 
 
 <div class="viewcode-block" id="ensure_tenant_is_platform_column">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_tenant_is_platform_column">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_tenant_is_platform_column">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_tenant_is_platform_column</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Additive migration for existing DBs (create_all does not alter columns).</span>
@@ -154,7 +154,7 @@
 
 
 <div class="viewcode-block" id="ensure_user_auth_columns">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_user_auth_columns">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_user_auth_columns">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_user_auth_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add auth-related columns to users table if they don&#39;t exist.&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
@@ -188,7 +188,7 @@
 
 
 <div class="viewcode-block" id="ensure_product_color_columns">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_product_color_columns">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_product_color_columns">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_product_color_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add level, color_family, hex_code columns and migrate tone_family to enum.&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
@@ -263,7 +263,7 @@
 
 
 <div class="viewcode-block" id="ensure_tenant_product_pack_columns">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_tenant_product_pack_columns">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_tenant_product_pack_columns">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_tenant_product_pack_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add salon pack size columns (value + G | ML | OZ unit).&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
@@ -298,7 +298,7 @@
 
 
 <div class="viewcode-block" id="ensure_preferred_stock_columns">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_preferred_stock_columns">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_preferred_stock_columns">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_preferred_stock_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add preferred_stock_qty to tenant_products and inventory_items.&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
@@ -333,7 +333,7 @@
 
 
 <div class="viewcode-block" id="ensure_reorder_ordered_at_column">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_reorder_ordered_at_column">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_reorder_ordered_at_column">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_reorder_ordered_at_column</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add reorder_ordered_at to inventory_items.&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
@@ -365,7 +365,7 @@
 
 
 <div class="viewcode-block" id="ensure_formula_visit_schema">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_formula_visit_schema">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_formula_visit_schema">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_formula_visit_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create formula_visits and link columns on formulas.&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
@@ -473,7 +473,7 @@
 
 
 <div class="viewcode-block" id="ensure_tenant_subscription_columns">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_tenant_subscription_columns">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_tenant_subscription_columns">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_tenant_subscription_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add subscription billing columns to tenants if missing.&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
@@ -511,7 +511,7 @@
 
 
 <div class="viewcode-block" id="ensure_tenant_stripe_columns">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_tenant_stripe_columns">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_tenant_stripe_columns">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_tenant_stripe_columns</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add Stripe billing columns to tenants if missing.&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
@@ -552,7 +552,7 @@
 
 
 <div class="viewcode-block" id="ensure_subscription_events_table">
-<a class="viewcode-back" href="../../modules.html#src.database.ensure_subscription_events_table">[docs]</a>
+<a class="viewcode-back" href="../../modules/core.html#src.database.ensure_subscription_events_table">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ensure_subscription_events_table</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create subscription_events audit table if missing.&quot;&quot;&quot;</span>
     <span class="n">is_sqlite</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>

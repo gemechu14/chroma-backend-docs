@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/services/subscription_events.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -103,7 +104,7 @@
 
 
 <div class="viewcode-block" id="record_subscription_event">
-<a class="viewcode-back" href="../../../modules.html#src.services.subscription_events.record_subscription_event">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.subscription_events.record_subscription_event">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">record_subscription_event</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -153,7 +154,7 @@
 
 
 <div class="viewcode-block" id="list_subscription_events">
-<a class="viewcode-back" href="../../../modules.html#src.services.subscription_events.list_subscription_events">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.subscription_events.list_subscription_events">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_subscription_events</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
     <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -173,7 +174,7 @@
 
 
 <div class="viewcode-block" id="count_subscription_events">
-<a class="viewcode-back" href="../../../modules.html#src.services.subscription_events.count_subscription_events">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.subscription_events.count_subscription_events">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">count_subscription_events</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SubscriptionEvent</span><span class="p">)</span>

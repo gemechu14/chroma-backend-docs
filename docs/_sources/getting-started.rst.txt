@@ -15,7 +15,7 @@ Local setup
 .. code-block:: bash
 
    git clone <repo-url>
-   cd "Chroma backend"
+   cd "Dosecolor backend"
    python -m venv venv
 
    # Windows
@@ -38,6 +38,7 @@ Minimum required for secure local use:
 
 - ``DATABASE_URL``
 - ``SECRET_KEY``
+- ``API_PUBLIC_URL``
 - ``ACCESS_TOKEN_EXPIRE_MINUTES``
 - ``REFRESH_TOKEN_EXPIRE_DAYS``
 
@@ -78,7 +79,18 @@ Run tests (if pytest suite is present):
 Open API docs UI
 ----------------
 
-- Swagger UI: ``http://localhost:8000/swagger``
-- ReDoc: ``http://localhost:8000/redoc``
-- OpenAPI JSON: ``http://localhost:8000/openapi.json``
-- Health endpoint: ``http://localhost:8000/health``
+Set ``API_PUBLIC_URL`` in ``.env`` to the host where this API is running.
+
+Examples:
+
+- Local development: ``API_PUBLIC_URL=http://localhost:8000``
+- Hosted environment: ``API_PUBLIC_URL=https://api.dosecolor.com``
+
+Then use:
+
+- Swagger UI: ``{API_PUBLIC_URL}/swagger``
+- ReDoc: ``{API_PUBLIC_URL}/redoc``
+- OpenAPI JSON: ``{API_PUBLIC_URL}/openapi.json``
+- Health endpoint: ``{API_PUBLIC_URL}/health``
+
+Replace ``{API_PUBLIC_URL}`` with the value from your ``.env`` file.

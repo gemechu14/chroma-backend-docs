@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/routers/platform.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -102,7 +103,7 @@
 
 
 <div class="viewcode-block" id="bootstrap_super_admin">
-<a class="viewcode-back" href="../../../modules.html#src.routers.platform.bootstrap_super_admin">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.platform.bootstrap_super_admin">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
     <span class="s2">&quot;/bootstrap-super-admin&quot;</span><span class="p">,</span>
     <span class="n">response_model</span><span class="o">=</span><span class="n">PlatformBootstrapResponse</span><span class="p">,</span>
@@ -174,7 +175,7 @@
 
 
 <div class="viewcode-block" id="list_billing_plans">
-<a class="viewcode-back" href="../../../modules.html#src.routers.platform.list_billing_plans">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.platform.list_billing_plans">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/billing/plans&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="n">SubscriptionPlanAdmin</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_billing_plans</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
@@ -186,7 +187,7 @@
 
 
 <div class="viewcode-block" id="update_billing_plan">
-<a class="viewcode-back" href="../../../modules.html#src.routers.platform.update_billing_plan">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.platform.update_billing_plan">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/billing/plans/</span><span class="si">{interval}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">SubscriptionPlanAdmin</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_billing_plan</span><span class="p">(</span>
     <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -216,7 +217,7 @@
 
 
 <div class="viewcode-block" id="get_billing_config">
-<a class="viewcode-back" href="../../../modules.html#src.routers.platform.get_billing_config">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.platform.get_billing_config">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/billing/config&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PlatformBillingConfigRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_billing_config</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
@@ -232,7 +233,7 @@
 
 
 <div class="viewcode-block" id="update_billing_config">
-<a class="viewcode-back" href="../../../modules.html#src.routers.platform.update_billing_config">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.platform.update_billing_config">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/billing/config&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PlatformBillingConfigRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_billing_config</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">PlatformBillingConfigUpdate</span><span class="p">,</span>

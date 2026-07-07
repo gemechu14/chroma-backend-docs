@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/routers/tenants.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -135,7 +136,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="list_tenants">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.list_tenants">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.list_tenants">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">TenantRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_tenants</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
@@ -163,7 +164,7 @@
 
 
 <div class="viewcode-block" id="get_my_tenant">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.get_my_tenant">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.get_my_tenant">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/mine&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_my_tenant</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
@@ -179,7 +180,7 @@
 
 
 <div class="viewcode-block" id="get_my_subscription">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.get_my_subscription">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.get_my_subscription">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/mine/subscription&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_my_subscription</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
@@ -195,7 +196,7 @@
 
 
 <div class="viewcode-block" id="get_my_subscription_events">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.get_my_subscription_events">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.get_my_subscription_events">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/mine/subscription/events&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">SubscriptionEventRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_my_subscription_events</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
@@ -221,7 +222,7 @@
 
 
 <div class="viewcode-block" id="cancel_my_subscription">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.cancel_my_subscription">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.cancel_my_subscription">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/mine/subscription/cancel&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">cancel_my_subscription</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">SubscriptionCancelRequest</span><span class="p">,</span>
@@ -248,7 +249,7 @@
 
 
 <div class="viewcode-block" id="reactivate_my_subscription">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.reactivate_my_subscription">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.reactivate_my_subscription">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/mine/subscription/reactivate&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">reactivate_my_subscription</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
@@ -282,7 +283,7 @@
 
 
 <div class="viewcode-block" id="renew_my_subscription">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.renew_my_subscription">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.renew_my_subscription">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/mine/subscription/renew&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">renew_my_subscription</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">SubscriptionRenewRequest</span><span class="p">,</span>
@@ -322,7 +323,7 @@
 
 
 <div class="viewcode-block" id="register_tenant">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.register_tenant">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.register_tenant">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
     <span class="s2">&quot;/register&quot;</span><span class="p">,</span>
     <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRegistrationResponse</span><span class="p">,</span>
@@ -415,7 +416,7 @@
 
 
 <div class="viewcode-block" id="create_tenant">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.create_tenant">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.create_tenant">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRead</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_tenant</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">TenantCreate</span><span class="p">,</span>
@@ -435,7 +436,7 @@
 
 
 <div class="viewcode-block" id="renew_tenant_subscription_admin">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.renew_tenant_subscription_admin">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.renew_tenant_subscription_admin">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/subscription/renew&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">renew_tenant_subscription_admin</span><span class="p">(</span>
     <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -462,7 +463,7 @@
 
 
 <div class="viewcode-block" id="get_tenant">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.get_tenant">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.get_tenant">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_tenant</span><span class="p">(</span>
     <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -479,7 +480,7 @@
 
 
 <div class="viewcode-block" id="update_tenant">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.update_tenant">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.update_tenant">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_tenant</span><span class="p">(</span>
     <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -495,7 +496,7 @@
 
 
 <div class="viewcode-block" id="delete_tenant">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.delete_tenant">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.delete_tenant">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">delete_tenant</span><span class="p">(</span>
     <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -518,7 +519,7 @@
 <span class="c1"># ---------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="list_locations">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.list_locations">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.list_locations">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/locations&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">PaginatedResponse</span><span class="p">[</span><span class="n">LocationRead</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_locations</span><span class="p">(</span>
     <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -543,7 +544,7 @@
 
 
 <div class="viewcode-block" id="create_location">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.create_location">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.create_location">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
     <span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/locations&quot;</span><span class="p">,</span>
     <span class="n">response_model</span><span class="o">=</span><span class="n">LocationRead</span><span class="p">,</span>
@@ -568,7 +569,7 @@
 
 
 <div class="viewcode-block" id="update_location">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.update_location">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.update_location">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/locations/</span><span class="si">{location_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">LocationRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">update_location</span><span class="p">(</span>
     <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -592,7 +593,7 @@
 
 
 <div class="viewcode-block" id="delete_location">
-<a class="viewcode-back" href="../../../modules.html#src.routers.tenants.delete_location">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.tenants.delete_location">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
     <span class="s2">&quot;/</span><span class="si">{tenant_id}</span><span class="s2">/locations/</span><span class="si">{location_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span>
 <span class="p">)</span>

@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/services/stripe_billing.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -123,7 +124,7 @@
 
 
 <div class="viewcode-block" id="stripe_enabled">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.stripe_enabled">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.stripe_enabled">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">stripe_enabled</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_SECRET_KEY</span> <span class="ow">and</span> <span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_SECRET_KEY</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></div>
 
@@ -136,7 +137,7 @@
 
 
 <div class="viewcode-block" id="price_id_for_interval">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.price_id_for_interval">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.price_id_for_interval">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">price_id_for_interval</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">interval</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">src.crud.subscription_plan</span><span class="w"> </span><span class="kn">import</span> <span class="n">stripe_price_id_for_interval</span>
 
@@ -150,7 +151,7 @@
 
 
 <div class="viewcode-block" id="interval_from_price_id">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.interval_from_price_id">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.interval_from_price_id">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interval_from_price_id</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">price_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">src.crud.subscription_plan</span><span class="w"> </span><span class="kn">import</span> <span class="n">interval_from_stripe_price_id</span>
 
@@ -165,7 +166,7 @@
 
 
 <div class="viewcode-block" id="checkout_success_url">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.checkout_success_url">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.checkout_success_url">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">checkout_success_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">configured</span> <span class="o">=</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_SUCCESS_URL</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">configured</span><span class="p">:</span>
@@ -175,7 +176,7 @@
 
 
 <div class="viewcode-block" id="checkout_cancel_url">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.checkout_cancel_url">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.checkout_cancel_url">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">checkout_cancel_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">configured</span> <span class="o">=</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">STRIPE_CANCEL_URL</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">configured</span><span class="p">:</span>
@@ -185,7 +186,7 @@
 
 
 <div class="viewcode-block" id="portal_return_url">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.portal_return_url">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.portal_return_url">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">portal_return_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_frontend_base</span><span class="p">()</span><span class="si">}</span><span class="s2">/settings/subscription?portal=return&quot;</span></div>
 
@@ -284,7 +285,7 @@
 
 
 <div class="viewcode-block" id="get_or_create_stripe_customer">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.get_or_create_stripe_customer">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.get_or_create_stripe_customer">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_or_create_stripe_customer</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
     <span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">,</span>
@@ -309,7 +310,7 @@
 
 
 <div class="viewcode-block" id="create_checkout_session">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.create_checkout_session">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.create_checkout_session">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_checkout_session</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
     <span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">,</span>
@@ -378,7 +379,7 @@
 
 
 <div class="viewcode-block" id="create_portal_session">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.create_portal_session">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.create_portal_session">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_portal_session</span><span class="p">(</span><span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">_configure_stripe</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_customer_id</span><span class="p">:</span>
@@ -394,7 +395,7 @@
 
 
 <div class="viewcode-block" id="cancel_subscription_at_period_end">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.cancel_subscription_at_period_end">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.cancel_subscription_at_period_end">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cancel_subscription_at_period_end</span><span class="p">(</span><span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">_configure_stripe</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">:</span>
@@ -407,7 +408,7 @@
 
 
 <div class="viewcode-block" id="reactivate_stripe_subscription">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.reactivate_stripe_subscription">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.reactivate_stripe_subscription">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">reactivate_stripe_subscription</span><span class="p">(</span><span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">_configure_stripe</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">tenant</span><span class="o">.</span><span class="n">stripe_subscription_id</span><span class="p">:</span>
@@ -420,7 +421,7 @@
 
 
 <div class="viewcode-block" id="apply_stripe_subscription_to_tenant">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.apply_stripe_subscription_to_tenant">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.apply_stripe_subscription_to_tenant">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">apply_stripe_subscription_to_tenant</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
     <span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">,</span>
@@ -474,7 +475,7 @@
 
 
 <div class="viewcode-block" id="handle_webhook_event">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.handle_webhook_event">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.handle_webhook_event">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">handle_webhook_event</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span>
     <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">Any</span><span class="p">,</span>
@@ -505,7 +506,7 @@
 
 
 <div class="viewcode-block" id="sync_tenant_from_stripe">
-<a class="viewcode-back" href="../../../modules.html#src.services.stripe_billing.sync_tenant_from_stripe">[docs]</a>
+<a class="viewcode-back" href="../../../modules/models-services.html#src.services.stripe_billing.sync_tenant_from_stripe">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">sync_tenant_from_stripe</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">tenant</span><span class="p">:</span> <span class="n">Tenant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tenant</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pull latest Stripe subscription state onto tenant (post-checkout fallback).&quot;&quot;&quot;</span>
     <span class="n">_configure_stripe</span><span class="p">()</span>

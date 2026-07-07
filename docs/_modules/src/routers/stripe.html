@@ -11,6 +11,7 @@
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/_modules/src/routers/stripe.html" />
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=8d563738"></script>
@@ -104,7 +105,7 @@
 
 
 <div class="viewcode-block" id="create_checkout_session">
-<a class="viewcode-back" href="../../../modules.html#src.routers.stripe.create_checkout_session">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.stripe.create_checkout_session">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/checkout-session&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">StripeCheckoutResponse</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_checkout_session</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">StripeCheckoutRequest</span><span class="p">,</span>
@@ -140,7 +141,7 @@
 
 
 <div class="viewcode-block" id="create_customer_portal">
-<a class="viewcode-back" href="../../../modules.html#src.routers.stripe.create_customer_portal">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.stripe.create_customer_portal">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/customer-portal&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">StripePortalResponse</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_customer_portal</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>
@@ -169,7 +170,7 @@
 
 
 <div class="viewcode-block" id="stripe_webhook">
-<a class="viewcode-back" href="../../../modules.html#src.routers.stripe.stripe_webhook">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.stripe.stripe_webhook">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/webhook&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stripe_webhook</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">)):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stripe webhook — sync subscription state to tenant rows.&quot;&quot;&quot;</span>
@@ -218,7 +219,7 @@
 
 
 <div class="viewcode-block" id="sync_my_subscription">
-<a class="viewcode-back" href="../../../modules.html#src.routers.stripe.sync_my_subscription">[docs]</a>
+<a class="viewcode-back" href="../../../modules/api-routes.html#src.routers.stripe.sync_my_subscription">[docs]</a>
 <span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/sync-subscription&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">TenantSubscriptionRead</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">sync_my_subscription</span><span class="p">(</span>
     <span class="n">db</span><span class="p">:</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db</span><span class="p">),</span>

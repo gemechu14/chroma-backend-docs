@@ -1,47 +1,15 @@
 Database Modules
 ================
 
-.. automodule:: src.models.__init__
-   :members:
-   :undoc-members:
-   :show-inheritance:
+CRUD modules provide tenant-scoped database operations used by API routes.
 
-.. automodule:: src.crud.user
-   :members:
-   :undoc-members:
-   :show-inheritance:
+- ``src/crud/user.py`` — user lookup, authentication helpers, and staff persistence
+- ``src/crud/tenant.py`` — tenant profile, locations, and subscription state
+- ``src/crud/customer.py`` — customer records per tenant
+- ``src/crud/product.py`` — global brands, lines, and products
+- ``src/crud/tenant_product.py`` — tenant catalog configuration
+- ``src/crud/inventory.py`` — stock levels and inventory transactions
+- ``src/crud/formula.py`` — formula and visit persistence with stock deduction
+- ``src/crud/subscription_plan.py`` — subscription plan catalog seeding and reads
 
-.. automodule:: src.crud.tenant
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.crud.customer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.crud.product
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.crud.tenant_product
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.crud.inventory
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.crud.formula
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.crud.subscription_plan
-   :members:
-   :undoc-members:
-   :show-inheritance:
+ORM model definitions are documented under :doc:`Models and Services <models-services>`.

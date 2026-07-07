@@ -12,6 +12,7 @@
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a19e95da" />
 
   
+    <link rel="canonical" href="https://gemechu14.github.io/chroma-backend-docs/getting-started.html" />
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=8d563738"></script>
@@ -99,7 +100,7 @@
 <section id="local-setup">
 <h2>Local setup<a class="headerlink" href="#local-setup" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>&lt;repo-url&gt;
-<span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;Chroma backend&quot;</span>
+<span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;Dosecolor backend&quot;</span>
 python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
 
 <span class="c1"># Windows</span>
@@ -123,6 +124,7 @@ uvicorn<span class="w"> </span>src.main:app<span class="w"> </span>--reload
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">DATABASE_URL</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">SECRET_KEY</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">API_PUBLIC_URL</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ACCESS_TOKEN_EXPIRE_MINUTES</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">REFRESH_TOKEN_EXPIRE_DAYS</span></code></p></li>
 </ul>
@@ -155,12 +157,20 @@ uvicorn<span class="w"> </span>src.main:app<span class="w"> </span>--reload
 </section>
 <section id="open-api-docs-ui">
 <h2>Open API docs UI<a class="headerlink" href="#open-api-docs-ui" title="Link to this heading"></a></h2>
+<p>Set <code class="docutils literal notranslate"><span class="pre">API_PUBLIC_URL</span></code> in <code class="docutils literal notranslate"><span class="pre">.env</span></code> to the host where this API is running.</p>
+<p>Examples:</p>
 <ul class="simple">
-<li><p>Swagger UI: <code class="docutils literal notranslate"><span class="pre">http://localhost:8000/swagger</span></code></p></li>
-<li><p>ReDoc: <code class="docutils literal notranslate"><span class="pre">http://localhost:8000/redoc</span></code></p></li>
-<li><p>OpenAPI JSON: <code class="docutils literal notranslate"><span class="pre">http://localhost:8000/openapi.json</span></code></p></li>
-<li><p>Health endpoint: <code class="docutils literal notranslate"><span class="pre">http://localhost:8000/health</span></code></p></li>
+<li><p>Local development: <code class="docutils literal notranslate"><span class="pre">API_PUBLIC_URL=http://localhost:8000</span></code></p></li>
+<li><p>Hosted environment: <code class="docutils literal notranslate"><span class="pre">API_PUBLIC_URL=https://api.dosecolor.com</span></code></p></li>
 </ul>
+<p>Then use:</p>
+<ul class="simple">
+<li><p>Swagger UI: <code class="docutils literal notranslate"><span class="pre">{API_PUBLIC_URL}/swagger</span></code></p></li>
+<li><p>ReDoc: <code class="docutils literal notranslate"><span class="pre">{API_PUBLIC_URL}/redoc</span></code></p></li>
+<li><p>OpenAPI JSON: <code class="docutils literal notranslate"><span class="pre">{API_PUBLIC_URL}/openapi.json</span></code></p></li>
+<li><p>Health endpoint: <code class="docutils literal notranslate"><span class="pre">{API_PUBLIC_URL}/health</span></code></p></li>
+</ul>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">{API_PUBLIC_URL}</span></code> with the value from your <code class="docutils literal notranslate"><span class="pre">.env</span></code> file.</p>
 </section>
 </section>
 
